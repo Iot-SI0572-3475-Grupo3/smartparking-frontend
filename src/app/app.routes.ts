@@ -18,6 +18,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/iam/pages/password-recovery-newpassword/password-recovery-newpassword.page').then(m => m.PasswordRecoveryNewpasswordPageComponent)
   },
   {
+    path: 'dashboard',
+    loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard.page').then(m => m.DashboardPageComponent)
+  },
+  {
     path: '',
     redirectTo: '/login',
     pathMatch: 'full'
