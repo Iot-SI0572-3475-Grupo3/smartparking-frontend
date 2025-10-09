@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 @Component({
   selector: 'app-login-form',
@@ -15,7 +15,7 @@ export class LoginFormComponent implements OnInit {
   showPassword = false;
   isLoading = false;
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, private router: Router) {}
 
   ngOnInit() {
     this.initializeForm();
@@ -47,6 +47,8 @@ export class LoginFormComponent implements OnInit {
         this.isLoading = false;
         // Aquí iría la lógica de autenticación
         console.log('Login exitoso');
+        // Navegar al dashboard después del login exitoso
+        this.router.navigate(['/dashboard']);
       }, 2000);
     } else {
       this.markFormGroupTouched();
