@@ -18,7 +18,7 @@ export class NavbarComponent {
     { label: 'Inicio', route: '/dashboard' },
     { label: 'Reservas', route: '/reservations' },
     { label: 'Historial', route: '/history' },
-    { label: 'Perfil', route: '/profile' }
+    { label: 'Perfil', route: '/profiles' }
   ];
 
   // Método para manejar clics en navegación

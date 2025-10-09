@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import {UserProfileComponent} from "./features/profiles/components/user-profile/user-profile.component";
 
 export const routes: Routes = [
   {
@@ -16,6 +17,10 @@ export const routes: Routes = [
   {
     path: 'password-recovery/new-password',
     loadComponent: () => import('./features/iam/pages/password-recovery-newpassword/password-recovery-newpassword.page').then(m => m.PasswordRecoveryNewpasswordPageComponent)
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./features/profiles/components/user-profile/user-profile.component').then(m => m.UserProfileComponent)
   },
   {
     path: '',
