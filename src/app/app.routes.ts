@@ -18,6 +18,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/iam/pages/password-recovery-newpassword/password-recovery-newpassword.page').then(m => m.PasswordRecoveryNewpasswordPageComponent)
   },
   {
+    path: 'penalty-first-absence',
+    loadComponent: () => import('./features/penalty/pages/penalty-first-absence/penalty-first-absence.page').then(m => m.PenaltyFirstAbsencePageComponent)
+  },
+  {
+    path: 'penalty-second-absence',
+    loadComponent: () => import('./features/penalty/pages/penalty-second-absence/penalty-second-absence.page').then(m => m.PenaltySecondAbsencePageComponent)
+  },
+  {
+    path: 'penalty-account-suspended',
+    loadComponent: () => import('./features/penalty/pages/penalty-account-suspended/penalty-account-suspended.page').then(m => m.PenaltyAccountSuspendedPageComponent)
+  },
+  {
     path: '',
     redirectTo: '/login',
     pathMatch: 'full'
