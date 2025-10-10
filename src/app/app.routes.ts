@@ -20,12 +20,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/iam/pages/password-recovery-newpassword/password-recovery-newpassword.page').then(m => m.PasswordRecoveryNewpasswordPageComponent)
   },
   {
+
     path: 'profile/notifications',
     component: ProfileSettingsComponent
   },
   {
     path: 'profile/history',
     component: HistoryPageComponent  // ← NUEVA RUTA
+
+    path: 'dashboard',
+    loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard.page').then(m => m.DashboardPageComponent)
   },
   {
     path: '',
