@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { ProfileSettingsComponent } from './features/profile/pages/profile-settings/profile-settings.component';
-import { HistoryPageComponent } from './features/profile/pages/history-page/history-page.component'; // ← NUEVO
+import { HistoryPageComponent } from './features/profile/pages/history-page/history-page.component';
+import {UserProfileComponent} from "./features/profile/pages/user-profile/user-profile.component"; // ← NUEVO
 
 export const routes: Routes = [
   {
@@ -20,14 +21,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/iam/pages/password-recovery-newpassword/password-recovery-newpassword.page').then(m => m.PasswordRecoveryNewpasswordPageComponent)
   },
   {
-
+    path: 'profile',
+    component: UserProfileComponent
+  },
+  {
     path: 'profile/notifications',
     component: ProfileSettingsComponent
   },
   {
     path: 'profile/history',
     component: HistoryPageComponent  // ← NUEVA RUTA
-
+  },
+  {
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard.page').then(m => m.DashboardPageComponent)
   },
