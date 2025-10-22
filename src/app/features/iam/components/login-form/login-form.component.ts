@@ -39,9 +39,9 @@ export class LoginFormComponent implements OnInit {
     if (this.loginForm.valid) {
       this.isLoading = true;
       const formData = this.loginForm.value;
-      
+
       console.log('Datos del login:', formData);
-      
+
       // Simular llamada a API
       setTimeout(() => {
         this.isLoading = false;
@@ -77,19 +77,19 @@ export class LoginFormComponent implements OnInit {
   // Obtener mensaje de error para un campo
   getErrorMessage(fieldName: string): string {
     const field = this.loginForm.get(fieldName);
-    
+
     if (field?.errors?.['required']) {
       return `${this.getFieldLabel(fieldName)} es requerido`;
     }
-    
+
     if (field?.errors?.['email']) {
       return 'Por favor ingresa un email válido';
     }
-    
+
     if (field?.errors?.['minlength']) {
       return 'La contraseña debe tener al menos 6 caracteres';
     }
-    
+
     return '';
   }
 
