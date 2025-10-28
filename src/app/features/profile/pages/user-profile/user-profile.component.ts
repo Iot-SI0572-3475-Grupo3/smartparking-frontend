@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
-import {NavbarComponent} from "../../../../layout/navbar/navbar.component";
 import {ButtonComponent} from "../../../../shared/button/button.component";
+import {InputComponent} from "../../../../shared/input/input.component";
+
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
   imports: [
-    NavbarComponent,
+    InputComponent,
     ButtonComponent
   ],
   templateUrl: './user-profile.component.html',
