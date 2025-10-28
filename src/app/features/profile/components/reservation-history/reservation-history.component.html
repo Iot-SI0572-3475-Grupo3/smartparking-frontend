@@ -1,0 +1,103 @@
+<div class="min-h-screen bg-background-secondary py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto">
+
+    <!-- Tarjeta de historial -->
+    <div class="bg-background-primary rounded-lg shadow-sm border border-text-light-hover overflow-hidden">
+
+      <!-- Encabezado -->
+      <div class="px-6 py-5 border-b border-text-light-hover">
+        <h2 class="text-2xl font-bold text-text-primary">Historial</h2>
+      </div>
+
+      <!-- Tabla de reservas -->
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-background-secondary border-b border-text-light-hover">
+          <tr>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-text-secondary">
+              Espacio
+            </th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-text-secondary">
+              Fecha
+            </th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-text-secondary">
+              Inicio
+            </th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-text-secondary">
+              Fin
+            </th>
+          </tr>
+          </thead>
+          <tbody class="divide-y divide-text-light-hover">
+          <tr
+            *ngFor="let reservation of paginatedReservations"
+            class="hover:bg-background-secondary transition-colors duration-150">
+            <td class="px-6 py-4 text-sm text-text-primary">
+              {{ reservation.space }}
+            </td>
+            <td class="px-6 py-4 text-sm text-text-secondary">
+              {{ reservation.date }}
+            </td>
+            <td class="px-6 py-4 text-sm text-text-secondary">
+              {{ reservation.startTime }}
+            </td>
+            <td class="px-6 py-4 text-sm text-text-secondary">
+              {{ reservation.endTime }}
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <div class="px-6 py-4 border-t border-text-light-hover">
+        <div class="flex items-center justify-center gap-1">
+
+          <!-- Botón anterior -->
+          <button
+            (click)="previousPage()"
+            [disabled]="currentPage === 1"
+            [class.opacity-50]="currentPage === 1"
+            [class.cursor-not-allowed]="currentPage === 1"
+            class="px-3 py-2 text-sm font-medium text-text-secondary hover:bg-background-secondary rounded-md transition-colors duration-150 disabled:hover:bg-transparent">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </button>
+
+          <!-- Números de página -->
+          <ng-container *ngFor="let page of visiblePages">
+            <button
+              *ngIf="page !== '...'"
+              (click)="goToPage(+page)"
+              [class.bg-button-primary]="currentPage === page"
+              [class.text-text-white]="currentPage === page"
+              [class.text-text-secondary]="currentPage !== page"
+              [class.hover:bg-background-secondary]="currentPage !== page"
+              class="min-w-[2.5rem] px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150">
+              {{ page }}
+            </button>
+            <span
+              *ngIf="page === '...'"
+              class="px-3 py-2 text-sm text-text-muted">
+              ...
+            </span>
+          </ng-container>
+
+          <!-- Botón siguiente -->
+          <button
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages"
+            [class.opacity-50]="currentPage === totalPages"
+            [class.cursor-not-allowed]="currentPage === totalPages"
+            class="px-3 py-2 text-sm font-medium text-text-secondary hover:bg-background-secondary rounded-md transition-colors duration-150 disabled:hover:bg-transparent">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

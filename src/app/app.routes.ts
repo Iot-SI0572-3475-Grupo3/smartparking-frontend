@@ -1,4 +1,7 @@
 import { Routes } from '@angular/router';
+import { ProfileSettingsComponent } from './features/profile/pages/profile-settings/profile-settings.component';
+import { HistoryPageComponent } from './features/profile/pages/history-page/history-page.component';
+import {UserProfileComponent} from "./features/profile/pages/user-profile/user-profile.component"; // ← NUEVO
 
 export const routes: Routes = [
   {
@@ -16,6 +19,18 @@ export const routes: Routes = [
   {
     path: 'password-recovery/new-password',
     loadComponent: () => import('./features/iam/pages/password-recovery-newpassword/password-recovery-newpassword.page').then(m => m.PasswordRecoveryNewpasswordPageComponent)
+  },
+  {
+    path: 'profile',
+    component: UserProfileComponent
+  },
+  {
+    path: 'profile/notifications',
+    component: ProfileSettingsComponent
+  },
+  {
+    path: 'profile/history',
+    component: HistoryPageComponent  // ← NUEVA RUTA
   },
   {
     path: 'dashboard',
