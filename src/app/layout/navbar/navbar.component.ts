@@ -17,7 +17,7 @@ export class NavbarComponent {
   navItems = [
     { label: 'Inicio', route: '/dashboard' },
     { label: 'Reservas', route: '/reservations' },
-    { label: 'Historial', route: '/history' },
+    { label: 'Historial', route: '/profile/history' },
     { label: 'Perfil', route: '/profile' }
   ];
 
