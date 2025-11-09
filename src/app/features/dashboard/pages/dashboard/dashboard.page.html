@@ -1,0 +1,40 @@
+<!-- Dashboard Page SmartParking -->
+<div class="h-screen bg-background-secondary overflow-hidden">
+  <div class="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col">
+
+    <!-- Título compacto -->
+    <h1 class="text-xl font-bold text-text-title mb-2">Espacios Disponibles</h1>
+
+    <!-- Grid de espacios -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
+      @for (space of availableSpaces; track space.id) {
+        <app-space-card [space]="space"></app-space-card>
+      }
+    </div>
+
+    <!-- Grid de Nueva Reserva y Estado de Ausencias -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-2 mb-2">
+      <app-new-reserve-card
+        (reserveClicked)="onReserveClick()"
+      ></app-new-reserve-card>
+
+      <app-state-absences-card
+        [absencesCount]="absencesCount"
+      ></app-state-absences-card>
+    </div>
+
+    <!-- Título de historial -->
+    <h2 class="text-lg font-bold text-text-title mb-2">Últimas Sesiones</h2>
+
+    <!-- Tabla de historial - Flex para ocupar espacio restante -->
+    <div class="flex-1 min-h-0">
+      <app-history-table
+        [showViewAllLink]="true"
+        [maxRecords]="3"
+        (viewAllClicked)="onViewAllHistory()"
+        (recordClicked)="onRecordClick($event)"
+      ></app-history-table>
+    </div>
+
+  </div>
+</div>
