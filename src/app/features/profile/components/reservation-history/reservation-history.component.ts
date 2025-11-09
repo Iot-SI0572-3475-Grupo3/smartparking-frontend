@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReservationHistory, MOCK_RESERVATION_HISTORY } from '../../models/reservation-history.model';
+import { HistoryService, HistoryRecord } from '../../../dashboard/services/history.service';
 
 @Component({
   selector: 'app-reservation-history',
@@ -10,20 +10,32 @@ import { ReservationHistory, MOCK_RESERVATION_HISTORY } from '../../models/reser
   styleUrl: './reservation-history.component.scss'
 })
 export class ReservationHistoryComponent implements OnInit {
-  reservations: ReservationHistory[] = [];
+  reservations: HistoryRecord[] = [];
   currentPage = 1;
   itemsPerPage = 7;
   totalPages = 0;
   pages: number[] = [];
+  isLoading = true;
+
+  constructor(private historyService: HistoryService) {}
 
   ngOnInit(): void {
     this.loadReservations();
-    this.calculatePagination();
   }
 
   loadReservations(): void {
-    // Simula carga desde servicio
-    this.reservations = MOCK_RESERVATION_HISTORY;
+    this.isLoading = true;
+    this.historyService.getAllHistory().subscribe({
+      next: (records) => {
+        this.reservations = records;
+        this.calculatePagination();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading reservations:', error);
+        this.isLoading = false;
+      }
+    });
   }
 
   calculatePagination(): void {
@@ -31,7 +43,7 @@ export class ReservationHistoryComponent implements OnInit {
     this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
-  get paginatedReservations(): ReservationHistory[] {
+  get paginatedReservations(): HistoryRecord[] {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
     return this.reservations.slice(startIndex, endIndex);
@@ -60,18 +72,15 @@ export class ReservationHistoryComponent implements OnInit {
     const maxVisiblePages = 5;
 
     if (this.totalPages <= maxVisiblePages + 2) {
-      // Mostrar todas las páginas si son pocas
       return this.pages;
     }
 
-    // Siempre mostrar la primera página
     pages.push(1);
 
     if (this.currentPage > 3) {
       pages.push('...');
     }
 
-    // Mostrar páginas alrededor de la actual
     for (let i = Math.max(2, this.currentPage - 1); i <= Math.min(this.totalPages - 1, this.currentPage + 1); i++) {
       pages.push(i);
     }
@@ -80,7 +89,6 @@ export class ReservationHistoryComponent implements OnInit {
       pages.push('...');
     }
 
-    // Siempre mostrar la última página
     if (this.totalPages > 1) {
       pages.push(this.totalPages);
     }
