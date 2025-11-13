@@ -1,0 +1,97 @@
+<!-- Tarjeta de Sesión Activa -->
+@if (session(); as sess) {
+  <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+
+    <!-- Header -->
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-text-primary mb-2">Carro Estacionado</h2>
+      <h3 class="text-xl font-semibold text-button-primary">{{ sess.spaceName }}</h3>
+    </div>
+
+    <!-- Cronómetro circular -->
+    <div class="flex justify-center mb-6">
+      <div class="relative w-56 h-56">
+        <!-- Círculo de fondo -->
+        <svg class="w-full h-full transform -rotate-90">
+          <circle
+            cx="112"
+            cy="112"
+            r="100"
+            class="fill-none stroke-gray-200"
+            stroke-width="12"/>
+
+          <!-- Círculo de progreso animado -->
+          <circle
+            cx="112"
+            cy="112"
+            r="100"
+            class="fill-none stroke-button-primary"
+            stroke-width="12"
+            stroke-linecap="round"
+            stroke-dasharray="628"
+            stroke-dashoffset="157"
+            style="animation: rotate 2s linear infinite"/>
+        </svg>
+
+        <!-- Contenido central -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="text-center">
+            <!-- Icono de carro -->
+            <div class="mb-3 flex justify-center">
+              <svg class="w-16 h-16 text-button-primary" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+              </svg>
+            </div>
+
+            <!-- Cronómetro -->
+            <div class="text-4xl font-bold text-text-primary mb-2">
+              {{ formattedElapsedTime() }}
+            </div>
+            <div class="text-sm text-text-secondary">
+              Iniciaste: {{ startTime() }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badges informativos -->
+    <div class="grid grid-cols-2 gap-3 mb-6">
+      <!-- Estás estacionado -->
+      <div class="bg-device-available/10 border border-device-available rounded-lg p-3 flex items-center gap-2">
+        <svg class="w-5 h-5 text-device-available" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span class="text-sm font-semibold text-device-available">Estás estacionado</span>
+      </div>
+
+      <!-- Sin límite de tiempo -->
+      <div class="bg-blue-50 border border-blue-300 rounded-lg p-3 flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+        </svg>
+        <span class="text-sm font-semibold text-blue-600">Sin límite de tiempo</span>
+      </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div class="flex items-start gap-2">
+        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+        </svg>
+        <p class="text-sm text-blue-700">
+          El sensor detectará tu salida automáticamente
+        </p>
+      </div>
+    </div>
+
+    <!-- Botón de finalizar (opcional, solo para testing) -->
+    <button
+      (click)="onEndSession()"
+      class="w-full bg-device-occupied text-white font-semibold py-3 px-4 rounded-lg hover:bg-device-occupied/90 transition-all">
+      Finalizar Sesión (Manual)
+    </button>
+
+  </div>
+}
