@@ -1,93 +1,95 @@
-import { Component } from '@angular/core';
+// src/app/features/dashboard/pages/dashboard/dashboard.page.ts
+
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SpaceCardComponent, SpaceCardData, SpaceStatus } from '../../components/space-card/space-card.component';
-import { HistoryTableComponent, HistoryRecord } from '../../components/history-table/history-table.component';
+import { SpaceCardComponent, SpaceCardData } from '../../components/space-card/space-card.component';
+import { HistoryTableComponent } from '../../components/history-table/history-table.component';
 import { NewReserveCardComponent } from '../../components/new-reserve-card/new-reserve-card.component';
 import { StateAbsencesCardComponent } from '../../components/state-absences-card/state-absences-card.component';
+import { ReserveModalComponent } from '../../components/reserve-modal/reserve-modal.component';
+import { ActiveReservationCardComponent } from '../../components/active-reservation-card/active-reservation-card.component';
+import { ActiveSessionCardComponent } from '../../components/active-session-card/active-session-card.component';
+import { ReservationService } from '../../services/reservation.service';
+import { Router } from '@angular/router';
+import { TestControlsComponent } from '../../components/test-controls/test-controls.component';
+
 
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,
-  imports: [CommonModule, SpaceCardComponent, HistoryTableComponent, NewReserveCardComponent, StateAbsencesCardComponent],
-  template: `
-    <div class="min-h-screen bg-background-secondary p-8">
-      <div class="max-w-7xl mx-auto">
-        
-        <!-- Sección 1: Espacios Disponibles y Nueva Reserva -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          <!-- Espacios Disponibles -->
-          <div class="lg:col-span-3">
-            <h2 class="text-text-primary font-bold text-2xl mb-6">Espacios Disponibles</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              @for (space of spaces; track space.id) {
-                <app-space-card
-                  [space]="space"
-                ></app-space-card>
-              }
-            </div>
-          </div>
-          
-          <!-- Nueva Reserva -->
-          <div class="lg:col-span-1">
-            <app-new-reserve-card
-              (reserveClicked)="onNewReserveClick()"
-            ></app-new-reserve-card>
-          </div>
-        </div>
-
-        <!-- Sección 2: Últimas Sesiones y Estado de Ausencias -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <!-- Últimas Sesiones -->
-          <div class="lg:col-span-3">
-            <h2 class="text-text-primary font-bold text-2xl mb-6">Últimas Sesiones</h2>
-            <app-history-table
-              (viewAllClicked)="onViewAllHistory()"
-              (recordClicked)="onHistoryRecordClick($event)"
-            ></app-history-table>
-          </div>
-          
-          <!-- Estado de Ausencias -->
-          <div class="lg:col-span-1 flex items-start">
-            <div class="w-full mt-16">
-              <app-state-absences-card
-                [absencesCount]="currentAbsences"
-              ></app-state-absences-card>
-            </div>
-          </div>
-        </div>
-        
-      </div>
-    </div>
-  `,
-  styles: []
+  imports: [
+    CommonModule,
+    SpaceCardComponent,
+    HistoryTableComponent,
+    NewReserveCardComponent,
+    StateAbsencesCardComponent,
+    ReserveModalComponent,
+    ActiveReservationCardComponent,
+    ActiveSessionCardComponent,
+    TestControlsComponent,
+  ],
+  templateUrl: './dashboard.page.html',
+  styleUrls: ['./dashboard.page.scss']
 })
-export class DashboardPageComponent {
-  // Solo 4 espacios de ejemplo
-  spaces: SpaceCardData[] = [
-    { id: '1', name: 'Espacio A', status: 'available' },
-    { id: '2', name: 'Espacio B', status: 'available' },
-    { id: '3', name: 'Espacio C', status: 'available' },
-    { id: '4', name: 'Espacio D', status: 'available' },
-  ];
+export class DashboardPageComponent implements OnInit {
+  // Signals del servicio
+  parkingSpaces = this.reservationService.parkingSpaces;
+  hasActiveReservation = this.reservationService.hasActiveReservation;
+  hasActiveSession = this.reservationService.hasActiveSession;
 
-  // Número actual de ausencias
+  // Control del modal
+  showReserveModal = false;
+
+  // Número actual de ausencias (mock)
   currentAbsences: number = 0;
 
-  // Manejar click en "Ver historial completo"
-  onViewAllHistory() {
-    console.log('Ver historial completo clickeado');
-    // Aquí podrías navegar a una página de historial completo
+  constructor(
+    private reservationService: ReservationService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    // Inicialización si fuera necesaria
   }
 
-  // Manejar click en un registro del historial
-  onHistoryRecordClick(record: HistoryRecord) {
-    console.log('Registro del historial clickeado:', record);
-    // Aquí podrías mostrar detalles del registro
+  // Convertir ParkingSpace a SpaceCardData para el componente
+  getSpaceCardData(): SpaceCardData[] {
+    return this.parkingSpaces().map(space => ({
+      id: space.id,
+      name: space.name,
+      status: space.status
+    }));
   }
 
-  // Manejar click en nueva reserva
-  onNewReserveClick() {
-    console.log('Nueva reserva clickeada');
-    // Aquí podrías navegar a la página de reservas o abrir un modal
+  // Abrir modal de reserva
+  openReserveModal(): void {
+    // Solo permitir si no hay reserva ni sesión activa
+    if (this.hasActiveReservation() || this.hasActiveSession()) {
+      alert('Ya tienes una reserva o sesión activa');
+      return;
+    }
+    this.showReserveModal = true;
+  }
+
+  // Cerrar modal de reserva
+  closeReserveModal(): void {
+    this.showReserveModal = false;
+  }
+
+  // Manejar creación exitosa de reserva
+  onReservationCreated(): void {
+    this.showReserveModal = false;
+    console.log('✅ Reserva creada exitosamente');
+  }
+
+  // Navegar a historial completo
+  onViewAllHistory(): void {
+    this.router.navigate(['/history']);
+  }
+
+  // Manejar click en registro del historial
+  onHistoryRecordClick(record: any): void {
+    console.log('📋 Registro clickeado:', record);
+    // Aquí podrías abrir un modal con detalles
   }
 }
