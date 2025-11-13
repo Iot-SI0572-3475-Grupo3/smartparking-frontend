@@ -7,7 +7,6 @@ import { NavbarComponent} from "../../../../layout/navbar/navbar.component";
   standalone: true,
   imports: [ReservationHistoryComponent, NavbarComponent],
   template: `
-    <app-navbar></app-navbar>
     <app-reservation-history></app-reservation-history>
   `
 })

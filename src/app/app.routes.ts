@@ -29,7 +29,7 @@ export const routes: Routes = [
     component: ProfileSettingsComponent
   },
   {
-    path: 'profile/history',
+    path: 'history',
     component: HistoryPageComponent  // ← NUEVA RUTA
   },
   {
