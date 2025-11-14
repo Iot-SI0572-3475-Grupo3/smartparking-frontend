@@ -1,20 +1,21 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+// src/app/features/dashboard/components/new-reserve-card/new-reserve-card.component.ts
+
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ButtonComponent } from "../../../../shared/button/button.component";
 
 @Component({
   selector: 'app-new-reserve-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ButtonComponent],
   templateUrl: './new-reserve-card.component.html',
-  styleUrl: './new-reserve-card.component.scss'
+  styleUrls: ['./new-reserve-card.component.scss']
 })
 export class NewReserveCardComponent {
-  @Input() disabled: boolean = false;
-  
+  @Input() disabled = false;
   @Output() reserveClicked = new EventEmitter<void>();
 
-  // Manejar click en el botón de reservar
-  onReserveClick() {
+  onReserveClick(): void {
     if (!this.disabled) {
       this.reserveClicked.emit();
     }

@@ -1,0 +1,177 @@
+<!-- Modal de Reserva -->
+<div
+  *ngIf="isVisible && !showSuccessModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+  (click)="close()">
+
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+    (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+      <h2 class="text-2xl font-bold text-text-primary">Reservar Espacio</h2>
+      <button
+        (click)="close()"
+        class="text-text-muted hover:text-text-primary transition-colors p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="reserveForm" (ngSubmit)="onSubmit()" class="p-6 space-y-6">
+
+      <!-- Fecha -->
+      <div>
+        <label for="date" class="block text-sm font-semibold text-text-primary mb-2">Fecha</label>
+        <input
+          type="date"
+          id="date"
+          formControlName="date"
+          [min]="minDate"
+          [max]="maxDate"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-button-primary focus:border-transparent transition-all"
+          [class.border-red-500]="(reserveForm.get('date')?.invalid && reserveForm.get('date')?.touched) || hasDateTimeError()" />
+        <p class="text-xs text-text-muted mt-1">Máximo 24 horas de anticipación</p>
+      </div>
+
+      <!-- Hora de inicio -->
+      <div>
+        <label for="startTime" class="block text-sm font-semibold text-text-primary mb-2">Hora de inicio</label>
+        <input
+          type="time"
+          id="startTime"
+          formControlName="startTime"
+          [min]="minTime"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-button-primary focus:border-transparent transition-all"
+          [class.border-red-500]="(reserveForm.get('startTime')?.invalid && reserveForm.get('startTime')?.touched) || hasDateTimeError()" />
+        <p class="text-xs text-text-muted mt-1">Mínimo 30 minutos de anticipación</p>
+
+        <!-- Mensaje de error de validación -->
+        @if (hasDateTimeError()) {
+          <p class="text-xs text-red-500 mt-1 font-semibold">{{ getDateTimeError() }}</p>
+        }
+      </div>
+
+      <!-- Selección de espacio -->
+      <div>
+        <label class="block text-sm font-semibold text-text-primary mb-3">Selecciona un espacio:</label>
+        <div class="grid grid-cols-2 gap-3">
+          @for (space of availableSpaces; track space.id) {
+            <label
+              class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all hover:border-button-primary"
+              [ngClass]="{
+                'border-button-primary bg-blue-50': reserveForm.get('spaceId')?.value === space.id,
+                'border-gray-300': reserveForm.get('spaceId')?.value !== space.id
+              }">
+              <input
+                type="radio"
+                [value]="space.id"
+                formControlName="spaceId"
+                class="sr-only" />
+              <span class="font-semibold text-text-primary">{{ space.name }}</span>
+            </label>
+          }
+        </div>
+        @if (reserveForm.get('spaceId')?.invalid && reserveForm.get('spaceId')?.touched) {
+          <p class="text-xs text-red-500 mt-1">Por favor selecciona un espacio</p>
+        }
+      </div>
+
+      <!-- Resumen de reserva -->
+      @if (reserveForm.valid) {
+        <div class="bg-background-secondary rounded-lg p-4 space-y-2">
+          <h3 class="font-semibold text-text-primary mb-3 border-b pb-2">Resumen de reserva:</h3>
+          <div class="flex justify-between text-sm">
+            <span class="text-text-secondary">Espacio</span>
+            <span class="font-medium text-text-primary">{{ selectedSpaceName }}</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-text-secondary">Fecha</span>
+            <span class="font-medium text-text-primary">{{ reserveForm.get('date')?.value }}</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-text-secondary">Hora de inicio</span>
+            <span class="font-medium text-text-primary">{{ reserveForm.get('startTime')?.value }}</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-text-secondary">Debes llegar antes:</span>
+            <span class="font-medium text-device-maintenance">~30 minutos</span>
+          </div>
+        </div>
+
+        <!-- Advertencia -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+          <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <p class="text-xs text-red-700">Recuerda que las ausencias generan penalidades</p>
+        </div>
+      }
+
+      <!-- Botón de acción -->
+      <button
+        type="submit"
+        [disabled]="reserveForm.invalid"
+        class="w-full bg-button-primary text-white font-semibold py-3 px-4 rounded-lg hover:bg-button-primary/90 focus:ring-2 focus:ring-button-primary focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+        Confirmar Reserva
+      </button>
+
+    </form>
+  </div>
+</div>
+
+<!-- Modal de Éxito -->
+<div
+  *ngIf="showSuccessModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+  (click)="onAcceptSuccess()">
+
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+    (click)="$event.stopPropagation()">
+
+    <!-- Icono de éxito -->
+    <div class="flex justify-center mb-4">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Título -->
+    <h2 class="text-2xl font-bold text-text-primary text-center mb-2">Reserva Confirmada</h2>
+    <p class="text-text-secondary text-center mb-6">Tu espacio ha sido reservado exitosamente</p>
+
+    <!-- Resumen -->
+    <div class="bg-background-secondary rounded-lg p-4 space-y-3 mb-6">
+      <div class="flex justify-between">
+        <span class="text-text-secondary">Espacio</span>
+        <span class="font-semibold text-text-primary">{{ reservationSummary?.space }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-text-secondary">Fecha</span>
+        <span class="font-medium text-text-primary">{{ reservationSummary?.date }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-text-secondary">Hora de inicio</span>
+        <span class="font-medium text-text-primary">{{ reservationSummary?.time }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-text-secondary">Debes llegar antes:</span>
+        <span class="font-semibold text-device-maintenance">{{ reservationSummary?.deadline }}</span>
+      </div>
+    </div>
+
+    <!-- Botón de acción -->
+    <button
+      (click)="onAcceptSuccess()"
+      class="w-full bg-button-primary text-white font-semibold py-3 px-4 rounded-lg hover:bg-button-primary/90 transition-all">
+      Aceptar
+    </button>
+
+  </div>
+</div>

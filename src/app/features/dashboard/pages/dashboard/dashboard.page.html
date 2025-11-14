@@ -1,40 +1,151 @@
-<!-- Dashboard Page SmartParking -->
-<div class="h-screen bg-background-secondary overflow-hidden">
-  <div class="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col">
+<!-- Dashboard SmartParking -->
+<div class="min-h-screen bg-background-secondary p-4 sm:p-6 lg:p-8">
+  <div class="max-w-7xl mx-auto">
 
-    <!-- Título compacto -->
-    <h1 class="text-xl font-bold text-text-title mb-2">Espacios Disponibles</h1>
+    <!-- CASO 1: Dashboard Normal (Sin reserva ni sesión activa) -->
+    @if (!hasActiveReservation() && !hasActiveSession()) {
 
-    <!-- Grid de espacios -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
-      @for (space of availableSpaces; track space.id) {
-        <app-space-card [space]="space"></app-space-card>
-      }
-    </div>
+      <!-- Sección 1: Espacios Disponibles y Nueva Reserva -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
 
-    <!-- Grid de Nueva Reserva y Estado de Ausencias -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-2 mb-2">
-      <app-new-reserve-card
-        (reserveClicked)="onReserveClick()"
-      ></app-new-reserve-card>
+        <!-- Espacios Disponibles -->
+        <div class="lg:col-span-3">
+          <h2 class="text-text-primary font-bold text-2xl mb-6">Espacios Disponibles</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            @for (space of getSpaceCardData(); track space.id) {
+              <app-space-card [space]="space"></app-space-card>
+            }
+          </div>
+        </div>
 
-      <app-state-absences-card
-        [absencesCount]="absencesCount"
-      ></app-state-absences-card>
-    </div>
+        <!-- Nueva Reserva -->
+        <div class="lg:col-span-1">
+          <app-new-reserve-card
+            (reserveClicked)="openReserveModal()">
+          </app-new-reserve-card>
+        </div>
+      </div>
 
-    <!-- Título de historial -->
-    <h2 class="text-lg font-bold text-text-title mb-2">Últimas Sesiones</h2>
+      <!-- Sección 2: Últimas Sesiones y Estado de Ausencias -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
-    <!-- Tabla de historial - Flex para ocupar espacio restante -->
-    <div class="flex-1 min-h-0">
-      <app-history-table
-        [showViewAllLink]="true"
-        [maxRecords]="3"
-        (viewAllClicked)="onViewAllHistory()"
-        (recordClicked)="onRecordClick($event)"
-      ></app-history-table>
-    </div>
+        <!-- Últimas Sesiones -->
+        <div class="lg:col-span-3">
+          <h2 class="text-text-primary font-bold text-2xl mb-6">Últimas Sesiones</h2>
+          <app-history-table
+            (viewAllClicked)="onViewAllHistory()"
+            (recordClicked)="onHistoryRecordClick($event)">
+          </app-history-table>
+        </div>
+
+        <!-- Estado de Ausencias -->
+        <div class="lg:col-span-1 flex items-start">
+          <div class="w-full mt-16">
+            <app-state-absences-card
+              [absencesCount]="currentAbsences">
+            </app-state-absences-card>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- CASO 2: Dashboard con Reserva Activa -->
+    @if (hasActiveReservation() && !hasActiveSession()) {
+
+      <!-- Sección Principal: Reserva Activa -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+        <!-- Tarjeta de Reserva Activa (2 columnas) -->
+        <div class="lg:col-span-2">
+          <h2 class="text-text-primary font-bold text-2xl mb-6">Reserva Activa</h2>
+          <app-active-reservation-card></app-active-reservation-card>
+        </div>
+
+        <!-- Columna Derecha -->
+        <div class="lg:col-span-1 flex flex-col gap-6">
+          <!-- Últimas Sesiones (compacto) -->
+          <div>
+            <h2 class="text-text-primary font-bold text-xl mb-4">Últimas Sesiones</h2>
+            <app-history-table
+              [maxRecords]="3"
+              [showViewAllLink]="true"
+              (viewAllClicked)="onViewAllHistory()">
+            </app-history-table>
+          </div>
+
+          <!-- Estado de Ausencias -->
+          <div>
+            <app-state-absences-card
+              [absencesCount]="currentAbsences">
+            </app-state-absences-card>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección Inferior: Espacios Disponibles (colapsado) -->
+      <div>
+        <h2 class="text-text-primary font-bold text-2xl mb-6">Espacios Disponibles</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          @for (space of getSpaceCardData(); track space.id) {
+            <app-space-card [space]="space"></app-space-card>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- CASO 3: Dashboard con Sesión Activa -->
+    @if (hasActiveSession()) {
+
+      <!-- Sección Principal: Sesión Activa -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+        <!-- Tarjeta de Sesión Activa (2 columnas) -->
+        <div class="lg:col-span-2">
+          <h2 class="text-text-primary font-bold text-2xl mb-6">Carro Estacionado</h2>
+          <app-active-session-card></app-active-session-card>
+        </div>
+
+        <!-- Columna Derecha -->
+        <div class="lg:col-span-1 flex flex-col gap-6">
+          <!-- Últimas Sesiones -->
+          <div>
+            <h2 class="text-text-primary font-bold text-xl mb-4">Últimas Sesiones</h2>
+            <app-history-table
+              [maxRecords]="3"
+              [showViewAllLink]="true"
+              (viewAllClicked)="onViewAllHistory()">
+            </app-history-table>
+          </div>
+
+          <!-- Estado de Ausencias -->
+          <div>
+            <app-state-absences-card
+              [absencesCount]="currentAbsences">
+            </app-state-absences-card>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección Inferior: Espacios Disponibles -->
+      <div>
+        <h2 class="text-text-primary font-bold text-2xl mb-6">Espacios Disponibles</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          @for (space of getSpaceCardData(); track space.id) {
+            <app-space-card [space]="space"></app-space-card>
+          }
+        </div>
+      </div>
+    }
 
   </div>
 </div>
+
+<!-- Modal de Reserva -->
+<app-reserve-modal
+  [isVisible]="showReserveModal"
+  (closed)="closeReserveModal()"
+  (reservationCreated)="onReservationCreated()">
+</app-reserve-modal>
+
+<!-- Controles de Testing (solo desarrollo) -->
+<app-test-controls></app-test-controls>

@@ -1,0 +1,26 @@
+// Animación de rotación para el círculo de progreso
+@keyframes rotate {
+  0% {
+    stroke-dashoffset: 628;
+  }
+  50% {
+    stroke-dashoffset: 314;
+  }
+  100% {
+    stroke-dashoffset: 628;
+  }
+}
+
+// Animación de pulso para el icono del carro
+svg {
+  animation: pulse-scale 2s ease-in-out infinite;
+}
+
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}

@@ -1,11 +1,18 @@
-import { Component } from '@angular/core';
+// src/app/features/dashboard/pages/dashboard/dashboard.page.ts
+
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { SpaceCardComponent } from '../../components/space-card/space-card.component';
+import { SpaceCardComponent, SpaceCardData } from '../../components/space-card/space-card.component';
+import { HistoryTableComponent } from '../../components/history-table/history-table.component';
 import { NewReserveCardComponent } from '../../components/new-reserve-card/new-reserve-card.component';
 import { StateAbsencesCardComponent } from '../../components/state-absences-card/state-absences-card.component';
-import { HistoryTableComponent } from '../../components/history-table/history-table.component';
-import type { SpaceCardData } from '../../components/space-card/space-card.component';
+import { ReserveModalComponent } from '../../components/reserve-modal/reserve-modal.component';
+import { ActiveReservationCardComponent } from '../../components/active-reservation-card/active-reservation-card.component';
+import { ActiveSessionCardComponent } from '../../components/active-session-card/active-session-card.component';
+import { ReservationService } from '../../services/reservation.service';
+import { Router } from '@angular/router';
+import { TestControlsComponent } from '../../components/test-controls/test-controls.component';
+
 
 @Component({
   selector: 'app-dashboard-page',
@@ -13,35 +20,76 @@ import type { SpaceCardData } from '../../components/space-card/space-card.compo
   imports: [
     CommonModule,
     SpaceCardComponent,
+    HistoryTableComponent,
     NewReserveCardComponent,
     StateAbsencesCardComponent,
-    HistoryTableComponent
+    ReserveModalComponent,
+    ActiveReservationCardComponent,
+    ActiveSessionCardComponent,
+    TestControlsComponent,
   ],
   templateUrl: './dashboard.page.html',
-  styles: []
+  styleUrls: ['./dashboard.page.scss']
 })
-export class DashboardPageComponent {
+export class DashboardPageComponent implements OnInit {
+  // Signals del servicio
+  parkingSpaces = this.reservationService.parkingSpaces;
+  hasActiveReservation = this.reservationService.hasActiveReservation;
+  hasActiveSession = this.reservationService.hasActiveSession;
 
-  constructor(private router: Router) {}
+  // Control del modal
+  showReserveModal = false;
 
-  availableSpaces: SpaceCardData[] = [
-    { id: '1', name: 'Espacio A', status: 'available' },
-    { id: '2', name: 'Espacio B', status: 'available' },
-    { id: '3', name: 'Espacio C', status: 'available' },
-    { id: '4', name: 'Espacio D', status: 'available' }
-  ];
+  // Número actual de ausencias (mock)
+  currentAbsences: number = 0;
 
-  absencesCount = 0;
+  constructor(
+    private reservationService: ReservationService,
+    private router: Router
+  ) {}
 
-  onReserveClick() {
-    console.log('Botón de reservar clickeado');
+  ngOnInit(): void {
+    // Inicialización si fuera necesaria
   }
 
-  onViewAllHistory() {
-    this.router.navigate(['/profile/history']);
+  // Convertir ParkingSpace a SpaceCardData para el componente
+  getSpaceCardData(): SpaceCardData[] {
+    return this.parkingSpaces().map(space => ({
+      id: space.id,
+      name: space.name,
+      status: space.status
+    }));
   }
 
-  onRecordClick(record: any) {
-    console.log('Registro clickeado:', record);
+  // Abrir modal de reserva
+  openReserveModal(): void {
+    // Solo permitir si no hay reserva ni sesión activa
+    if (this.hasActiveReservation() || this.hasActiveSession()) {
+      alert('Ya tienes una reserva o sesión activa');
+      return;
+    }
+    this.showReserveModal = true;
+  }
+
+  // Cerrar modal de reserva
+  closeReserveModal(): void {
+    this.showReserveModal = false;
+  }
+
+  // Manejar creación exitosa de reserva
+  onReservationCreated(): void {
+    this.showReserveModal = false;
+    console.log('✅ Reserva creada exitosamente');
+  }
+
+  // Navegar a historial completo
+  onViewAllHistory(): void {
+    this.router.navigate(['/history']);
+  }
+
+  // Manejar click en registro del historial
+  onHistoryRecordClick(record: any): void {
+    console.log('📋 Registro clickeado:', record);
+    // Aquí podrías abrir un modal con detalles
   }
 }
