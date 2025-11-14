@@ -1,0 +1,21 @@
+<!-- New Reserve Card Component SmartParking -->
+<div class="bg-background-primary rounded-xl shadow-md p-8 text-center h-full flex flex-col justify-center">
+
+  <!-- Título principal -->
+  <h2 class="text-text-primary font-bold text-lg mb-2">
+    Nueva Reserva
+  </h2>
+
+  <!-- Descripción -->
+  <p class="text-text-secondary text-sm mb-3">
+    Encuentra y reserva tu espacio ideal en segundos
+  </p>
+
+  <!-- Botón de acción -->
+  <app-button
+    (click)="onReserveClick()"
+    [disabled]="disabled">
+    + Reservar Espacio
+  </app-button>
+
+</div>

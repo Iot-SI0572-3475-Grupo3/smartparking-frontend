@@ -1,0 +1,81 @@
+<!-- History Table Component SmartParking -->
+<div class="bg-background-primary rounded-xl shadow-md p-4">
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="flex justify-center items-center py-8">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-button-primary"></div>
+    </div>
+  }
+
+  <!-- Tabla de historial -->
+  @if (!isLoading) {
+    <div class="overflow-x-auto">
+      <table class="w-full">
+
+        <!-- Header de la tabla -->
+        <thead>
+        <tr class="border-b border-gray-200">
+          <th class="text-left py-2 px-3 text-text-primary font-bold text-sm">
+            Espacio
+          </th>
+          <th class="text-left py-2 px-3 text-text-primary font-bold text-sm">
+            Fecha
+          </th>
+          <th class="text-left py-2 px-3 text-text-primary font-bold text-sm">
+            Inicio
+          </th>
+          <th class="text-left py-2 px-3 text-text-primary font-bold text-sm">
+            Fin
+          </th>
+        </tr>
+        </thead>
+
+        <!-- Cuerpo de la tabla -->
+        <tbody>
+          @for (record of displayRecords; track record.id) {
+            <tr
+              class="border-b border-gray-200 hover:bg-background-secondary transition-colors duration-200 cursor-pointer"
+              (click)="onRecordClick(record)"
+            >
+              <td class="py-2 px-3 text-text-primary text-sm">
+                {{ record.space }}
+              </td>
+              <td class="py-2 px-3 text-text-primary text-sm">
+                {{ record.date }}
+              </td>
+              <td class="py-2 px-3 text-text-primary text-sm">
+                {{ record.startTime }}
+              </td>
+              <td class="py-2 px-3 text-text-primary text-sm">
+                {{ record.endTime }}
+              </td>
+            </tr>
+          }
+
+          @if (displayRecords.length === 0) {
+            <tr>
+              <td colspan="4" class="py-6 text-center text-text-muted text-sm">
+                No hay registros de historial disponibles
+              </td>
+            </tr>
+          }
+        </tbody>
+
+      </table>
+    </div>
+
+    <!-- Enlace "Ver historial completo" -->
+    @if (showViewAllLink && displayRecords.length > 0) {
+      <div class="mt-4 text-center">
+        <button
+          (click)="onViewAllClick()"
+          class="text-button-primary hover:text-button-primary/80 font-medium text-sm transition-colors duration-200"
+        >
+          Ver historial completo
+        </button>
+      </div>
+    }
+  }
+
+</div>

@@ -1,5 +1,8 @@
 <!-- Layout principal de SmartParking -->
 <div class="min-h-screen bg-background-secondary">
-  <!-- Contenido principal que cambia con una ruta dinamica -->
+  <!-- Navbar persistente (solo en rutas autenticadas) -->
+  <app-navbar *ngIf="showNavbar()"></app-navbar>
+  
+  <!-- Contenido principal que cambia según la ruta -->
   <router-outlet></router-outlet>
-</div>
+  </div>

@@ -1,0 +1,81 @@
+<!-- Tarjeta de Reserva Activa -->
+@if (reservation(); as res) {
+  <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <h2 class="text-2xl font-bold text-button-primary mb-1">{{ res.spaceName }}</h2>
+        <p class="text-sm text-text-secondary">Hora: {{ res.startTime }}</p>
+      </div>
+
+      <!-- Alerta de tiempo -->
+      <div
+        class="px-4 py-2 rounded-lg flex items-center gap-2"
+        [ngClass]="{
+          'bg-yellow-50 text-device-maintenance': !isWarning(),
+          'bg-red-50 text-device-occupied': isWarning()
+        }">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <span class="text-sm font-semibold">
+          Te quedan {{ formattedTime() }} para llegar
+        </span>
+      </div>
+    </div>
+
+    <!-- Cuenta regresiva circular -->
+    <div class="flex justify-center mb-6">
+      <div class="relative w-48 h-48">
+        <!-- Círculo de fondo -->
+        <svg class="w-full h-full transform -rotate-90">
+          <circle
+            cx="96"
+            cy="96"
+            r="88"
+            class="fill-none stroke-gray-200"
+            stroke-width="12"/>
+
+          <!-- Círculo de progreso -->
+          <circle
+            cx="96"
+            cy="96"
+            r="88"
+            class="fill-none transition-all duration-1000"
+            [ngClass]="{
+              'stroke-button-primary': !isWarning(),
+              'stroke-device-occupied': isWarning()
+            }"
+            stroke-width="12"
+            stroke-linecap="round"
+            [attr.stroke-dasharray]="2 * Math.PI * 88"
+            [attr.stroke-dashoffset]="2 * Math.PI * 88 * (1 - progressPercentage() / 100)"/>
+        </svg>
+
+        <!-- Texto central -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="text-center">
+            <div
+              class="text-4xl font-bold mb-1"
+              [ngClass]="{
+                'text-button-primary': !isWarning(),
+                'text-device-occupied': isWarning()
+              }">
+              {{ formattedTime() }}
+            </div>
+            <div class="text-sm text-text-muted">minutos restantes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón de cancelar -->
+    <button
+      (click)="onCancelReservation()"
+      class="w-full bg-device-occupied text-white font-semibold py-3 px-4 rounded-lg hover:bg-device-occupied/90 transition-all">
+      Cancelar Reserva
+    </button>
+
+  </div>
+}

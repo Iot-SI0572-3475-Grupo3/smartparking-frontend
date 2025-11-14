@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 @Component({
   selector: 'app-login-form',
@@ -15,7 +15,7 @@ export class LoginFormComponent implements OnInit {
   showPassword = false;
   isLoading = false;
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, private router: Router) {}
 
   ngOnInit() {
     this.initializeForm();
@@ -39,14 +39,16 @@ export class LoginFormComponent implements OnInit {
     if (this.loginForm.valid) {
       this.isLoading = true;
       const formData = this.loginForm.value;
-      
+
       console.log('Datos del login:', formData);
-      
+
       // Simular llamada a API
       setTimeout(() => {
         this.isLoading = false;
         // Aquí iría la lógica de autenticación
         console.log('Login exitoso');
+        // Navegar al dashboard después del login exitoso
+        this.router.navigate(['/dashboard']);
       }, 2000);
     } else {
       this.markFormGroupTouched();
@@ -75,19 +77,19 @@ export class LoginFormComponent implements OnInit {
   // Obtener mensaje de error para un campo
   getErrorMessage(fieldName: string): string {
     const field = this.loginForm.get(fieldName);
-    
+
     if (field?.errors?.['required']) {
       return `${this.getFieldLabel(fieldName)} es requerido`;
     }
-    
+
     if (field?.errors?.['email']) {
       return 'Por favor ingresa un email válido';
     }
-    
+
     if (field?.errors?.['minlength']) {
       return 'La contraseña debe tener al menos 6 caracteres';
     }
-    
+
     return '';
   }
 

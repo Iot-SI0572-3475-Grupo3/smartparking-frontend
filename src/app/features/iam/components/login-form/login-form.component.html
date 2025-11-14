@@ -1,10 +1,10 @@
 <!-- Login Form SmartParking -->
 <div class="min-h-screen bg-background-secondary flex items-center justify-center px-4 py-12">
   <div class="max-w-md w-full">
-    
+
     <!-- Card del formulario -->
     <div class="bg-background-primary rounded-2xl shadow-xl p-8">
-      
+
       <!-- Header/Branding -->
       <div class="text-center mb-8">
         <h1 class="text-text-title font-bold text-3xl mb-2">
@@ -13,7 +13,7 @@
         <p class="text-text-secondary text-sm mb-6">
           Reservation & Monitoring System
         </p>
-        
+
         <h2 class="text-text-primary font-bold text-2xl mb-2">
           Welcome
         </h2>
@@ -24,7 +24,7 @@
 
       <!-- Formulario -->
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        
+
         <!-- Campo Email -->
         <div>
           <label for="email" class="block text-text-primary font-semibold text-sm mb-2">
@@ -109,8 +109,8 @@
             >
             <span class="ml-2 text-text-primary text-sm">Remember me</span>
           </label>
-          
-          <a 
+
+          <a
             routerLink="/password-recovery"
             class="text-button-primary hover:text-button-primary/80 text-sm font-medium transition-colors duration-200"
           >
@@ -142,8 +142,8 @@
       <!-- Footer -->
       <div class="mt-8 text-center">
         <p class="text-text-primary text-sm">
-          Don't have an account? 
-          <a 
+          Don't have an account?
+          <a
             routerLink="/register"
             class="text-button-primary hover:text-button-primary/80 font-medium transition-colors duration-200"
           >

@@ -1,0 +1,59 @@
+<div class="min-h-screen bg-background-secondary py-6 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Encabezado más compacto -->
+    <div class="mb-5">
+      <h1 class="text-2xl font-bold text-text-title mb-1">Notificaciones</h1>
+      <p class="text-sm text-text-secondary">
+        Gestiona cómo te comunicamos las novedades. Elige qué notificaciones quieres recibir.
+      </p>
+    </div>
+
+    <!-- Tarjeta de preferencias más compacta -->
+    <div class="bg-background-primary rounded-lg shadow-sm border border-text-light-hover p-6">
+      <div class="space-y-4">
+        <!-- Item de notificación -->
+        <div
+          *ngFor="let preference of preferences; let last = last"
+          class="pb-4"
+          [class.border-b]="!last"
+          [class.border-text-light-hover]="!last">
+
+          <div class="flex items-start justify-between">
+            <div class="flex-1 pr-4">
+              <h3 class="text-base font-semibold text-text-primary mb-1">
+                {{ preference.title }}
+              </h3>
+              <p class="text-sm text-text-secondary">
+                {{ preference.description }}
+              </p>
+            </div>
+
+            <!-- Toggle Switch -->
+            <div class="flex-shrink-0">
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="preference.enabled"
+                  (change)="onToggleChange(preference)"
+                  class="sr-only peer">
+                <div class="w-14 h-8 bg-text-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-button-primary/30 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-text-white after:content-[''] after:absolute after:top-[4px] after:start-[4px] after:bg-text-white after:border-text-muted after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-button-primary"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón de guardar más compacto -->
+    <div class="mt-5 flex justify-center">
+      <button
+        (click)="saveChanges()"
+        [disabled]="!hasChanges"
+        [class.opacity-50]="!hasChanges"
+        [class.cursor-not-allowed]="!hasChanges"
+        class="px-8 py-2.5 bg-button-primary text-text-white font-semibold rounded-lg hover:bg-button-primary/90 focus:outline-none focus:ring-4 focus:ring-button-primary/30 transition-all duration-200 disabled:hover:bg-button-primary">
+        Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>
