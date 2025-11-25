@@ -1,7 +1,9 @@
 import { Routes } from '@angular/router';
 import { ProfileSettingsComponent } from './features/profile/pages/profile-settings/profile-settings.component';
 import { HistoryPageComponent } from './features/profile/pages/history-page/history-page.component';
-import {UserProfileComponent} from "./features/profile/pages/user-profile/user-profile.component"; // ← NUEVO
+import {UserProfileComponent} from "./features/profile/pages/user-profile/user-profile.component";
+import {ParkingAdminDashboardComponent} from "./features/dashboard/pages/parking-admin-dashboard/parking-admin-dashboard.component"; // ← NUEVO
+import {authenticationGuard} from "./features/iam/services/authentication.guard";
 
 export const routes: Routes = [
   {
@@ -20,6 +22,8 @@ export const routes: Routes = [
     path: 'password-recovery/new-password',
     loadComponent: () => import('./features/iam/pages/password-recovery-newpassword/password-recovery-newpassword.page').then(m => m.PasswordRecoveryNewpasswordPageComponent)
   },
+
+
   {
     path: 'profile',
     component: UserProfileComponent
@@ -34,7 +38,12 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard.page').then(m => m.DashboardPageComponent)
+    loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard.page').then(m => m.DashboardPageComponent),
+    canActivate: [authenticationGuard],
+  },
+  {
+    path: 'admin/dashboard',
+    component: ParkingAdminDashboardComponent
   },
   {
     path: '',
