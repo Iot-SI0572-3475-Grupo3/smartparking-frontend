@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import {AuthenticationService} from "../../services/authentication.service";
+import {SignInRequest} from "../../model/sign-in.request";
 
 @Component({
   selector: 'app-login-form',
@@ -15,7 +17,11 @@ export class LoginFormComponent implements OnInit {
   showPassword = false;
   isLoading = false;
 
-  constructor(private fb: FormBuilder, private router: Router) {}
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private authService: AuthenticationService,
+  ) {}
 
   ngOnInit() {
     this.initializeForm();
@@ -40,15 +46,18 @@ export class LoginFormComponent implements OnInit {
       this.isLoading = true;
       const formData = this.loginForm.value;
 
+      const request: SignInRequest = {
+        email: formData.email,
+        password: formData.password
+      };
+
       console.log('Datos del login:', formData);
 
-      // Simular llamada a API
       setTimeout(() => {
         this.isLoading = false;
-        // Aquí iría la lógica de autenticación
-        console.log('Login exitoso');
-        // Navegar al dashboard después del login exitoso
-        this.router.navigate(['/dashboard']);
+
+        this.authService.signIn(request);
+
       }, 2000);
     } else {
       this.markFormGroupTouched();
