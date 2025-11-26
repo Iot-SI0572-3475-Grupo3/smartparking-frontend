@@ -26,20 +26,23 @@ export const routes: Routes = [
 
   {
     path: 'profile',
-    component: UserProfileComponent
+    component: UserProfileComponent,
+    canActivate: [authenticationGuard]
   },
   {
     path: 'profile/notifications',
-    component: ProfileSettingsComponent
+    component: ProfileSettingsComponent,
+    canActivate: [authenticationGuard]
   },
   {
     path: 'history',
-    component: HistoryPageComponent  // ← NUEVA RUTA
+    component: HistoryPageComponent,
+    canActivate: [authenticationGuard]
   },
   {
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard.page').then(m => m.DashboardPageComponent),
-    canActivate: [authenticationGuard],
+    canActivate: [authenticationGuard]
   },
   {
     path: 'admin/dashboard',

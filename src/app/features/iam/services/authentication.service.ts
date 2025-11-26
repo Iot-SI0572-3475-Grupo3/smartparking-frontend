@@ -93,7 +93,6 @@ export class AuthenticationService {
       });
   }
   signIn(signInRequest: SignInRequest) {
-    //console.log(signInRequest);
     return this.http.post<SignInResponse>(`${this.basePath}/auth/users/login`, signInRequest, this.httpOptions)
       .subscribe({
         next: (response) => {
