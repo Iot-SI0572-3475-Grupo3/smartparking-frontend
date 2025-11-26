@@ -1,10 +1,10 @@
 <!-- Register Form SmartParking -->
 <div class="min-h-screen bg-background-secondary flex items-center justify-center px-4 py-12">
   <div class="max-w-md w-full">
-    
+
     <!-- Card del formulario -->
     <div class="bg-background-primary rounded-2xl shadow-xl p-8">
-      
+
       <!-- Header/Branding -->
       <div class="text-center mb-8">
         <h1 class="text-text-title font-bold text-3xl mb-2">
@@ -13,7 +13,7 @@
         <p class="text-text-secondary text-sm mb-6">
           Reservation & Monitoring System
         </p>
-        
+
         <h2 class="text-text-primary font-bold text-2xl mb-2">
           Register
         </h2>
@@ -24,27 +24,49 @@
 
       <!-- Formulario -->
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        
+
         <!-- Campo Nombre Completo -->
         <div>
-          <label for="fullName" class="block text-text-primary font-semibold text-sm mb-2">
-            Full Name (First & Last Names)
+          <label for="firstName" class="block text-text-primary font-semibold text-sm mb-2">
+            First Name
           </label>
           <div class="relative">
             <input
-              id="fullName"
+              id="firstName"
               type="text"
-              formControlName="fullName"
+              formControlName="firstName"
               placeholder="Enter your full name"
               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-button-primary focus:border-transparent transition-all duration-200 text-text-primary placeholder-text-muted"
-              [class.border-red-500]="hasError('fullName')"
-              [class.focus:ring-red-500]="hasError('fullName')"
+              [class.border-red-500]="hasError('firstName')"
+              [class.focus:ring-red-500]="hasError('firstName')"
             >
           </div>
           <!-- Mensaje de error -->
-          @if (hasError('fullName')) {
+          @if (hasError('firstName')) {
             <p class="text-red-500 text-xs mt-1">
-              {{ getErrorMessage('fullName') }}
+              {{ getErrorMessage('firstName') }}
+            </p>
+          }
+        </div>
+        <div>
+          <label for="lastName" class="block text-text-primary font-semibold text-sm mb-2">
+            Last Name
+          </label>
+          <div class="relative">
+            <input
+              id="lastName"
+              type="text"
+              formControlName="lastName"
+              placeholder="Enter your full name"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-button-primary focus:border-transparent transition-all duration-200 text-text-primary placeholder-text-muted"
+              [class.border-red-500]="hasError('lastName')"
+              [class.focus:ring-red-500]="hasError('lastName')"
+            >
+          </div>
+          <!-- Mensaje de error -->
+          @if (hasError('lastName')) {
+            <p class="text-red-500 text-xs mt-1">
+              {{ getErrorMessage('lastName') }}
             </p>
           }
         </div>
@@ -80,6 +102,26 @@
               {{ getErrorMessage('email') }}
             </p>
           }
+        </div>
+
+        <div>
+          <label for="password" class="block text-text-primary font-semibold text-sm mb-2">
+            Role
+          </label>
+          <div class="relative">
+            <select
+              id="role"
+              formControlName="role"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-button-primary focus:border-transparent transition-all duration-200 text-text-primary"
+            >
+              <option value="university_member">University Student</option>
+              <option value="administrator">Parking Administrator</option>
+            </select>
+          </div>
+          <p class="text-red-500 text-xs mt-1" *ngIf="hasError('role')">
+            {{ getErrorMessage('role') }}
+          </p>
+
         </div>
 
         <!-- Campo Contraseña -->
@@ -178,9 +220,9 @@
               class="w-4 h-4 text-button-primary bg-background-primary border-gray-300 rounded focus:ring-button-primary focus:ring-2 mt-1"
             >
             <span class="ml-2 text-text-primary text-sm">
-              Accept 
-              <a 
-                href="#" 
+              Accept
+              <a
+                href="#"
                 class="text-button-primary hover:text-button-primary/80 underline transition-colors duration-200"
               >
                 Terms & Conditions
@@ -219,8 +261,8 @@
       <!-- Footer -->
       <div class="mt-8 text-center">
         <p class="text-text-primary text-sm">
-          Already have an account? 
-          <a 
+          Already have an account?
+          <a
             routerLink="/login"
             class="text-button-primary hover:text-button-primary/80 font-medium transition-colors duration-200"
           >
