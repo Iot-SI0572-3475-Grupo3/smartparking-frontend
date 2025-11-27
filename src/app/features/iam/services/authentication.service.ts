@@ -101,7 +101,14 @@ export class AuthenticationService {
           this.getUserDataFromToken();
           sessionStorage.setItem('signInId', response.sessionId);
           console.log(`Signed in with token ${response.token} and id ${this.signedInUserId.value}`);
-          this.router.navigate([`dashboard`]).then();
+          if (this.signedInUserRole.value === 'administrator') {
+            console.log('Navigating to admin dashboard');
+            this.router.navigate([`admin/dashboard`]).then();
+            return;
+          }
+          else {
+            this.router.navigate([`dashboard`]).then();
+          }
         },
         error: (error) => {
           this.signedIn.next(false);
@@ -113,8 +120,8 @@ export class AuthenticationService {
       });
   }
 
-  logOut(logOutRequest: logOutRequest) {
-    return this.http.post<logOutRequest>(`${this.basePath}/auth/users/logout/${sessionStorage.getItem('signInId')}`, logOutRequest, this.httpOptions)
+  logOut() {
+    return this.http.post<logOutRequest>(`${this.basePath}/auth/users/logout/${sessionStorage.getItem('signInId')}`, this.httpOptions)
       .subscribe({
         next: (response) => {
           this.signedIn.next(false);
