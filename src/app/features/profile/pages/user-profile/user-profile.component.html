@@ -14,7 +14,7 @@
         </div>
         <div class="text-center">
           <span class="text-xs text-text-secondary">Estado: </span>
-          <span class="text-sm font-medium text-text-primary">Status</span>
+          <span class="text-sm font-medium text-text-primary">{{this.userStatus}}</span>
         </div>
       </div>
     </div>
@@ -30,12 +30,12 @@
             <div class="flex flex-col sm:flex-row gap-3 w-full">
               <div class="flex-1">
                 <label for="firstName" class="block mb-1 text-xs font-medium text-text-primary">Nombre</label>
-                <app-input id="firstName" type="text" placeholder="Nombre" [isDisabled]="!isEditing"></app-input>
+                <app-input id="firstName" type="text" placeholder="{{this.firstName}}}" [ngModel]="firstName" name="formFirstName" [isDisabled]="!isEditing"></app-input>
               </div>
 
               <div class="flex-1">
                 <label for="lastName" class="block mb-1 text-xs font-medium text-text-primary">Apellido</label>
-                <app-input type="text" id="lastName" placeholder="Apellido" [isDisabled]="!isEditing"></app-input>
+                <app-input type="text" id="lastName" placeholder="{{this.lastName}}" [ngModel]="lastName" name="formLastName" [isDisabled]="!isEditing"></app-input>
               </div>
             </div>
 
@@ -63,22 +63,17 @@
 
             <div class="p-2 bg-background-secondary border border-gray-200 rounded-lg text-center">
               <p class="text-xs text-text-muted mb-1">Reservas totales</p>
-              <h5 class="text-xl font-bold text-text-primary">120</h5>
-            </div>
-
-            <div class="p-2 bg-background-secondary border border-gray-200 rounded-lg text-center">
-              <p class="text-xs text-text-muted mb-1">Tiempo total</p>
-              <h5 class="text-xl font-bold text-text-primary">120 h</h5>
+              <h5 class="text-xl font-bold text-text-primary">{{ this.userTotalReserves }}</h5>
             </div>
 
             <div class="p-2 bg-background-secondary border border-gray-200 rounded-lg text-center">
               <p class="text-xs text-text-muted mb-1">Canceladas</p>
-              <h5 class="text-xl font-bold text-text-primary">5</h5>
+              <h5 class="text-xl font-bold text-text-primary">{{this.userCanceledReserves}}</h5>
             </div>
 
             <div class="p-2 bg-background-secondary border border-gray-200 rounded-lg text-center">
-              <p class="text-xs text-text-muted mb-1">Pendientes</p>
-              <h5 class="text-xl font-bold text-text-primary">2</h5>
+              <p class="text-xs text-text-muted mb-1">Expiradas</p>
+              <h5 class="text-xl font-bold text-text-primary">{{this.userExpiredReserves}}</h5>
             </div>
 
           </div>

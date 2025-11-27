@@ -29,6 +29,7 @@ export class AuthenticationService {
   private signedIn = new BehaviorSubject<boolean>(false);
   private signedInUserId = new BehaviorSubject<number>(0);
   private signedInUserRole = new BehaviorSubject<string>('');
+  private signedInUserStatus = new BehaviorSubject<string>('');
 
   constructor(
     private router: Router,
@@ -45,6 +46,10 @@ export class AuthenticationService {
 
   get currentUserRole(){
     return this.signedInUserRole.asObservable();
+  }
+
+  get currentUserStatus(){
+    return this.signedInUserStatus.asObservable();
   }
 
   getUserDataFromToken() : void{
@@ -108,6 +113,7 @@ export class AuthenticationService {
           }
           else {
             this.router.navigate([`dashboard`]).then();
+            this.signedInUserStatus.next(response.status);
           }
         },
         error: (error) => {
