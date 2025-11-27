@@ -11,8 +11,13 @@ export class ButtonComponent {
   @Input() type: 'button' | 'submit' | 'reset' = 'button' ;
   @Input() disabled: boolean = false ;
   @Input() link?:  string;
+
   constructor(private router: Router) { }
+
   @HostListener('click', ['$event'])
+
+
+
   onClick(event: Event) {
     if (this.disabled) {
       event.preventDefault();

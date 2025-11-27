@@ -25,32 +25,33 @@
 
         <!-- Formulario de Información Personal -->
         <div>
-          <form class="space-y-3" action="#">
+          <form class="space-y-3" (ngSubmit)="onSaveProfile()" action="#">
 
             <div class="flex flex-col sm:flex-row gap-3 w-full">
               <div class="flex-1">
-                <label for="name" class="block mb-1 text-xs font-medium text-text-primary">Nombre</label>
-                <app-input id="name" type="text" placeholder="Nombre"></app-input>
+                <label for="firstName" class="block mb-1 text-xs font-medium text-text-primary">Nombre</label>
+                <app-input id="firstName" type="text" placeholder="Nombre" [isDisabled]="!isEditing"></app-input>
               </div>
 
               <div class="flex-1">
-                <label for="phone" class="block mb-1 text-xs font-medium text-text-primary">Número de teléfono</label>
-                <app-input type="tel" id="phone" placeholder="Ej: 996458225"></app-input>
+                <label for="lastName" class="block mb-1 text-xs font-medium text-text-primary">Apellido</label>
+                <app-input type="text" id="lastName" placeholder="Apellido" [isDisabled]="!isEditing"></app-input>
               </div>
             </div>
 
-            <div class="flex-1">
-              <label for="email" class="block mb-1 text-xs font-medium text-text-primary">Correo Electrónico</label>
-              <app-input id="email" type="email" placeholder="ejemplo@correo.com"></app-input>
-            </div>
-
             <div class="flex gap-2 justify-end">
-              <button type="button" class="w-36 whitespace-nowrap bg-button-primary text-text-white font-medium py-2 px-4 rounded-lg hover:bg-button-primary/90 transition-all text-sm">
+              <app-button
+                type = "button"
+                (click) = "isEditing = true"
+              >
                 Editar
-              </button>
-              <button type="submit" class="w-36 whitespace-nowrap bg-button-primary text-text-white font-medium py-2 px-4 rounded-lg hover:bg-button-primary/90 transition-all text-sm">
+              </app-button>
+
+              <app-button
+                type = "submit"
+              >
                 Guardar Cambios
-              </button>
+              </app-button>
             </div>
           </form>
         </div>
@@ -84,10 +85,8 @@
         </div>
 
         <!-- Botón de Notificaciones -->
-        <div class="flex">
-          <button type="button" class="max-w-xs w-auto ml-auto whitespace-nowrap bg-button-primary text-text-white font-medium py-2 px-4 rounded-lg hover:bg-button-primary/90 transition-all text-sm" onclick="window.location.href='/profile/notifications'">
-            Configuración de Notificaciones
-          </button>
+        <div class="flex justify-end">
+          <app-button type="button">Configuración de Notificaciones</app-button>
         </div>
 
         <!-- Cambiar Contraseña -->
@@ -110,9 +109,7 @@
             </div>
 
             <div class="flex justify-end">
-              <button type="submit" class="max-w-xs w-auto whitespace-nowrap bg-button-primary text-text-white font-medium py-2 px-4 rounded-lg hover:bg-button-primary/90 transition-all text-sm">
-                Cambiar Contraseña
-              </button>
+              <app-button>Cambiar Contraseña</app-button>
             </div>
           </form>
         </div>
