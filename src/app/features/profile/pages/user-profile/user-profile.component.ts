@@ -22,19 +22,26 @@ export class UserProfileComponent implements OnInit {
 
   firstName = '';
   lastName = '';
-  userStatus = this.authenticationService.currentUserStatus.toString();
+  userStatus = '';
   userTotalReserves = 0;
   userCanceledReserves = 0;
   userExpiredReserves = 0;
 
   ngOnInit(): void {
+    this.authenticationService.currentUserStatus.subscribe(
+      (status: string) => {
+        this.userStatus = status;
+        }
+      );
     this.profileService.getProfile().subscribe(
       (response: any) => {
+        console.log('User profile data:', response);
         this.firstName = response.firstName;
         this.lastName = response.lastName;
       });
     this.profileService.getHistory().subscribe(
       (response: any) => {
+        console.log('User reservation history:', response);
         this.userTotalReserves = response.length;
         for (let reserve of response) {
           if (reserve.status === 'cancelled') {

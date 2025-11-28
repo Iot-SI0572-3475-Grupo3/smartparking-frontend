@@ -17,11 +17,7 @@ export class ProfileService {
     })
   };
 
-
-  private totalReserves = 0;
-  private canceledReserves = 0;
-  private expiredReserves = 0;
-
+  private userId = '';
 
 
   constructor(
@@ -32,7 +28,12 @@ export class ProfileService {
 
 
   getProfile(){
-    return this.httpClient.get(`${this.basepath}/user-profiles/${this.authenticationService.currentUserId.toString()}`, this.httpOptions)
+    this.authenticationService.currentUserId.subscribe(
+      (id: string) => {
+        this.userId = id;
+      }
+    );
+    return this.httpClient.get(`${this.basepath}/user-profiles/${this.userId}`, this.httpOptions)
   }
 
   getHistory(){
@@ -40,6 +41,11 @@ export class ProfileService {
   }
 
   putProfile(profile: UserProfile){
-    return this.httpClient.put(`${this.basepath}/user-profiles/${this.authenticationService.currentUserId.toString()}`, profile, this.httpOptions)
+    this.authenticationService.currentUserId.subscribe(
+      (id: string) => {
+        this.userId = id;
+      }
+    );
+    return this.httpClient.put(`${this.basepath}/user-profiles/${this.userId}`, profile, this.httpOptions)
   }
 }
