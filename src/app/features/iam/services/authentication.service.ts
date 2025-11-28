@@ -27,7 +27,7 @@ export class AuthenticationService {
 
 
   private signedIn = new BehaviorSubject<boolean>(false);
-  private signedInUserId = new BehaviorSubject<number>(0);
+  private signedInUserId = new BehaviorSubject<string>('');
   private signedInUserRole = new BehaviorSubject<string>('');
   private signedInUserStatus = new BehaviorSubject<string>('');
 
@@ -61,7 +61,7 @@ export class AuthenticationService {
       const data = decodeJwt(token)
 
       this.signedIn.next(true);
-      this.signedInUserId.next(data.userId);
+      this.signedInUserId.next(data.userId || data.id || data.sub || '');
       this.signedInUserRole.next(data.role);
 
     } catch (error) {
@@ -105,7 +105,8 @@ export class AuthenticationService {
           localStorage.setItem('token', response.token);
           this.getUserDataFromToken();
           sessionStorage.setItem('signInId', response.sessionId);
-          console.log(`Signed in with token ${response.token} and id ${this.signedInUserId.value}`);
+
+          console.log(`Signed in with token ${response.token} and id ${this.signedInUserId.value} and role ${this.signedInUserRole.value}`);
           if (this.signedInUserRole.value === 'administrator') {
             console.log('Navigating to admin dashboard');
             this.router.navigate([`admin/dashboard`]).then();
@@ -118,7 +119,7 @@ export class AuthenticationService {
         },
         error: (error) => {
           this.signedIn.next(false);
-          this.signedInUserId.next(0);
+          this.signedInUserId.next('');
           this.signedInUserRole.next('');
           console.error(`Error while signing in: ${error}`);
           this.router.navigate(['login']).then();
@@ -131,7 +132,7 @@ export class AuthenticationService {
       .subscribe({
         next: (response) => {
           this.signedIn.next(false);
-          this.signedInUserId.next(0);
+          this.signedInUserId.next('');
           this.signedInUserRole.next('');
           localStorage.removeItem('token');
           this.router.navigate(['login']).then();
