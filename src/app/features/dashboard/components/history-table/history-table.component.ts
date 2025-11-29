@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HistoryService, HistoryRecord } from '../../../dashboard/services/history.service';
+import { ReservationService } from '../../services/reservation.service'; // ✅ CAMBIAR IMPORT
 
 @Component({
   selector: 'app-history-table',
@@ -14,12 +14,12 @@ export class HistoryTableComponent implements OnInit {
   @Input() maxRecords: number = 4;
 
   @Output() viewAllClicked = new EventEmitter<void>();
-  @Output() recordClicked = new EventEmitter<HistoryRecord>();
+  @Output() recordClicked = new EventEmitter<any>();
 
-  historyRecords: HistoryRecord[] = [];
+  historyRecords: any[] = [];
   isLoading = true;
 
-  constructor(private historyService: HistoryService) {}
+  constructor(private reservationService: ReservationService) {} // ✅ CAMBIAR SERVICIO
 
   ngOnInit() {
     this.loadHistory();
@@ -27,19 +27,22 @@ export class HistoryTableComponent implements OnInit {
 
   loadHistory() {
     this.isLoading = true;
-    this.historyService.getRecentHistory(this.maxRecords).subscribe({
+
+    // ✅ LLAMAR AL BACKEND
+    this.reservationService.getReservationHistoryHttp().subscribe({
       next: (records) => {
-        this.historyRecords = records;
+        this.historyRecords = records.slice(0, this.maxRecords); // Limitar según maxRecords
         this.isLoading = false;
+        console.log('✅ Historial cargado desde backend:', records);
       },
       error: (error) => {
-        console.error('Error loading history:', error);
+        console.error('❌ Error loading history:', error);
         this.isLoading = false;
       }
     });
   }
 
-  get displayRecords(): HistoryRecord[] {
+  get displayRecords(): any[] {
     return this.historyRecords;
   }
 
@@ -47,7 +50,7 @@ export class HistoryTableComponent implements OnInit {
     this.viewAllClicked.emit();
   }
 
-  onRecordClick(record: HistoryRecord) {
+  onRecordClick(record: any) {
     this.recordClicked.emit(record);
   }
 }
