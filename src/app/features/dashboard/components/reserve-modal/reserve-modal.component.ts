@@ -3,7 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ReservationService } from '../../services/reservation.service';
 import { AuthenticationService } from '../../../iam/services/authentication.service';
-import { ParkingSpace } from '../../models/reservation.model';
+import { ParkingSpaceService } from '../../../../services/parking-space.service';
+
+interface ParkingSpace {
+  spaceId: string;
+  code: string;
+  status: string;
+}
 
 @Component({
   selector: 'app-reserve-modal',
@@ -22,26 +28,45 @@ export class ReserveModalComponent implements OnInit {
   showSuccessModal = false;
   reservationSummary: any = null;
   isLoading = false;
+  isLoadingSpaces = false;
 
-  // Fechas límite
   minDate: string = '';
-  maxDate: string = ''; // ← Ya no se usará para validación
   minTime: string = '';
+  timeOptions: string[] = [];
 
-  // Usuario actual
   private currentUserId: string = '';
 
   constructor(
     private fb: FormBuilder,
     private reservationService: ReservationService,
-    private authService: AuthenticationService
+    private authService: AuthenticationService,
+    private parkingSpaceService: ParkingSpaceService
   ) {}
 
   ngOnInit(): void {
     this.calculateDateLimits();
+    this.generateTimeOptions();
     this.initializeForm();
-    this.loadAvailableSpaces();
     this.getCurrentUserId();
+
+    // ✅ CARGAR ESPACIOS INMEDIATAMENTE AL ABRIR EL MODAL
+    console.log('🚀 Modal inicializado, cargando espacios...');
+    setTimeout(() => {
+      this.loadAvailableSpaces();
+    }, 100);
+  }
+
+  /**
+   * Genera opciones de tiempo en múltiplos de 15 minutos
+   */
+  private generateTimeOptions(): void {
+    this.timeOptions = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const timeString = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        this.timeOptions.push(timeString);
+      }
+    }
   }
 
   /**
@@ -61,16 +86,28 @@ export class ReserveModalComponent implements OnInit {
    */
   private calculateDateLimits(): void {
     const now = new Date();
-
-    // Fecha mínima: HOY
     this.minDate = this.formatDateForInput(now);
 
-    // ✅ ELIMINADO: Ya no hay límite máximo de 24 horas
-    // Se puede reservar cualquier fecha futura
-
-    // Hora mínima: Ahora + 30 minutos
+    // Hora mínima: Ahora + 30 minutos, redondeado al siguiente múltiplo de 15
     const minDateTime = new Date(now.getTime() + 30 * 60 * 1000);
-    this.minTime = this.formatTimeForInput(minDateTime);
+    this.minTime = this.roundToNext15Minutes(minDateTime);
+  }
+
+  /**
+   * Redondear al siguiente múltiplo de 15 minutos
+   */
+  private roundToNext15Minutes(date: Date): string {
+    const minutes = date.getMinutes();
+    const roundedMinutes = Math.ceil(minutes / 15) * 15;
+
+    if (roundedMinutes >= 60) {
+      date.setHours(date.getHours() + 1);
+      date.setMinutes(0);
+    } else {
+      date.setMinutes(roundedMinutes);
+    }
+
+    return this.formatTimeForInput(date);
   }
 
   /**
@@ -78,24 +115,29 @@ export class ReserveModalComponent implements OnInit {
    */
   private initializeForm(): void {
     const now = new Date();
-    const defaultDateTime = new Date(now.getTime() + 30 * 60 * 1000); // +30 min
+    const defaultDateTime = new Date(now.getTime() + 30 * 60 * 1000);
 
     this.reserveForm = this.fb.group({
       date: [this.formatDateForInput(defaultDateTime), [Validators.required]],
-      startTime: [this.formatTimeForInput(defaultDateTime), [Validators.required]],
+      startTime: [this.roundToNext15Minutes(defaultDateTime), [Validators.required]],
       spaceId: ['', Validators.required]
     }, {
       validators: [this.dateTimeValidator.bind(this)]
     });
 
-    // Listener para actualizar hora mínima cuando cambia la fecha
+    // Listener para cargar espacios cuando cambie fecha/hora
     this.reserveForm.get('date')?.valueChanges.subscribe(() => {
       this.updateMinTime();
+      this.loadAvailableSpaces();
+    });
+
+    this.reserveForm.get('startTime')?.valueChanges.subscribe(() => {
+      this.loadAvailableSpaces();
     });
   }
 
   /**
-   * Validador personalizado de fecha y hora (SIN LÍMITE DE 24 HORAS)
+   * Validador personalizado de fecha y hora
    */
   private dateTimeValidator(control: AbstractControl): ValidationErrors | null {
     const date = control.get('date')?.value;
@@ -105,15 +147,11 @@ export class ReserveModalComponent implements OnInit {
 
     const now = new Date();
     const selectedDateTime = new Date(`${date}T${startTime}`);
-    const minDateTime = new Date(now.getTime() + 30 * 60 * 1000); // +30 min
+    const minDateTime = new Date(now.getTime() + 30 * 60 * 1000);
 
-    // Validar que sea al menos 30 minutos en el futuro
     if (selectedDateTime < minDateTime) {
       return { tooSoon: true };
     }
-
-    // ✅ ELIMINADO: Validación de máximo 24 horas
-    // Ya no hay límite máximo
 
     return null;
   }
@@ -129,15 +167,12 @@ export class ReserveModalComponent implements OnInit {
     const todayStr = this.formatDateForInput(now);
 
     if (selectedDate === todayStr) {
-      // Si es HOY, hora mínima = ahora + 30 min
       const minDateTime = new Date(now.getTime() + 30 * 60 * 1000);
-      this.minTime = this.formatTimeForInput(minDateTime);
+      this.minTime = this.roundToNext15Minutes(minDateTime);
     } else {
-      // Si es MAÑANA o después, hora mínima = 00:00
       this.minTime = '00:00';
     }
 
-    // Revalidar el formulario
     this.reserveForm.updateValueAndValidity();
   }
 
@@ -157,8 +192,48 @@ export class ReserveModalComponent implements OnInit {
     return `${hours}:${minutes}`;
   }
 
-  private loadAvailableSpaces(): void {
-    this.availableSpaces = this.reservationService.getAvailableSpaces();
+  /**
+   * Cargar espacios disponibles desde el backend
+   */
+  loadAvailableSpaces(): void {
+    const date = this.reserveForm.get('date')?.value;
+    const time = this.reserveForm.get('startTime')?.value;
+
+    console.log('🔍 loadAvailableSpaces llamado:', { date, time });
+
+    if (!date || !time) {
+      console.log('⚠️ Fecha u hora no seleccionadas, limpiando espacios');
+      this.availableSpaces = [];
+      return;
+    }
+
+    this.isLoadingSpaces = true;
+    console.log('📡 Llamando a getParkingSpaceByStatus("available")...');
+
+    // Llamar al servicio para obtener espacios con status "available"
+    this.parkingSpaceService.getParkingSpaceByStatus('available').subscribe({
+      next: (spaces) => {
+        console.log('✅ Espacios recibidos del backend:', spaces);
+        console.log('📊 Cantidad de espacios:', spaces?.length);
+
+        this.availableSpaces = spaces.map(space => ({
+          spaceId: space.spaceId,
+          code: space.code,
+          status: space.status
+        }));
+
+        console.log('✅ Espacios mapeados:', this.availableSpaces);
+        this.isLoadingSpaces = false;
+      },
+      error: (error) => {
+        console.error('❌ Error cargando espacios:', error);
+        console.error('❌ Status del error:', error.status);
+        console.error('❌ Mensaje del error:', error.message);
+        this.availableSpaces = [];
+        this.isLoadingSpaces = false;
+        alert('Error al cargar espacios disponibles. Intenta de nuevo.');
+      }
+    });
   }
 
   onSubmit(): void {
@@ -180,9 +255,9 @@ export class ReserveModalComponent implements OnInit {
     const request = {
       spaceId: spaceId,
       userId: this.currentUserId,
-      startTime: `${date}T${startTime}:00`, // ISO 8601 format
-      vehicleInfo: JSON.stringify({ plate: 'ABC123', color: 'Rojo' }), // Ejemplo - podrías agregar campos al formulario
-      specialRequirements: 'Cerca de la entrada' // Ejemplo - podrías agregar campos al formulario
+      startTime: `${date}T${startTime}:00`,
+      vehicleInfo: '', // String vacío como solicitaste
+      specialRequirements: '' // String vacío como solicitaste
     };
 
     console.log('📤 Enviando reserva al backend:', request);
@@ -193,16 +268,18 @@ export class ReserveModalComponent implements OnInit {
         console.log('✅ Reserva creada exitosamente:', response);
         this.isLoading = false;
 
-        // ✅ CALCULAR LA HORA LÍMITE (hora de inicio + 30 minutos)
+        // Calcular la hora límite (hora de inicio + 30 minutos)
         const [hours, minutes] = startTime.split(':').map(Number);
         const deadlineDate = new Date(date);
         deadlineDate.setHours(hours, minutes + 30);
 
         // Preparar resumen usando los datos del backend
+        const selectedSpace = this.availableSpaces.find(s => s.spaceId === spaceId);
+
         this.reservationSummary = {
-          space: response.spaceCode,
+          space: selectedSpace?.code || response.spaceCode,
           date: this.formatDate(new Date(response.date)),
-          time: response.startTime.substring(11, 16), // Extraer HH:mm
+          time: response.startTime.substring(11, 16),
           deadline: this.formatTime(deadlineDate)
         };
 
@@ -213,7 +290,6 @@ export class ReserveModalComponent implements OnInit {
         console.error('❌ Error creando reserva:', error);
         this.isLoading = false;
 
-        // Manejar diferentes tipos de errores
         if (error.status === 401) {
           alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
         } else if (error.status === 409) {
@@ -237,8 +313,9 @@ export class ReserveModalComponent implements OnInit {
     this.reserveForm.reset();
     this.showSuccessModal = false;
     this.isLoading = false;
-    this.calculateDateLimits(); // Recalcular límites al cerrar
-    this.initializeForm(); // Reinicializar formulario
+    this.availableSpaces = [];
+    this.calculateDateLimits();
+    this.initializeForm();
     this.closed.emit();
   }
 
@@ -262,26 +339,19 @@ export class ReserveModalComponent implements OnInit {
 
   get selectedSpaceName(): string {
     const spaceId = this.reserveForm.get('spaceId')?.value;
-    return this.availableSpaces.find(s => s.id === spaceId)?.name || '';
+    return this.availableSpaces.find(s => s.spaceId === spaceId)?.code || '';
   }
 
-  /**
-   * Mensajes de error personalizados (SIN LÍMITE DE 24 HORAS)
-   */
   getDateTimeError(): string {
     if (this.reserveForm.errors?.['tooSoon']) {
       return 'Debes reservar con al menos 30 minutos de anticipación';
     }
-    // ✅ ELIMINADO: Mensaje de error "tooFar"
     return '';
   }
 
-  /**
-   * Verificar si hay error de fecha/hora
-   */
   hasDateTimeError(): boolean {
     const errors = this.reserveForm.errors;
-    const hasDateTimeErrors = Boolean(errors?.['tooSoon']); // ✅ Solo valida "tooSoon"
+    const hasDateTimeErrors = Boolean(errors?.['tooSoon']);
     const touched = Boolean(this.reserveForm.get('date')?.touched || this.reserveForm.get('startTime')?.touched);
     return hasDateTimeErrors && touched;
   }

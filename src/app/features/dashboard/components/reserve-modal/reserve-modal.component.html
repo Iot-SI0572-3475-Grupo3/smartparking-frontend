@@ -31,23 +31,23 @@
           id="date"
           formControlName="date"
           [min]="minDate"
-          [max]="maxDate"
           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-button-primary focus:border-transparent transition-all"
           [class.border-red-500]="(reserveForm.get('date')?.invalid && reserveForm.get('date')?.touched) || hasDateTimeError()" />
-        <p class="text-xs text-text-muted mt-1">Máximo 24 horas de anticipación</p>
+        <p class="text-xs text-text-muted mt-1">Selecciona la fecha de tu reserva</p>
       </div>
 
-      <!-- Hora de inicio -->
+      <!-- Hora de inicio (SELECT con múltiplos de 15) -->
       <div>
         <label for="startTime" class="block text-sm font-semibold text-text-primary mb-2">Hora de inicio</label>
-        <input
-          type="time"
+        <select
           id="startTime"
           formControlName="startTime"
-          [min]="minTime"
           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-button-primary focus:border-transparent transition-all"
-          [class.border-red-500]="(reserveForm.get('startTime')?.invalid && reserveForm.get('startTime')?.touched) || hasDateTimeError()" />
-        <p class="text-xs text-text-muted mt-1">Mínimo 30 minutos de anticipación</p>
+          [class.border-red-500]="(reserveForm.get('startTime')?.invalid && reserveForm.get('startTime')?.touched) || hasDateTimeError()">
+          <option value="" disabled>Selecciona una hora</option>
+          <option *ngFor="let time of timeOptions" [value]="time">{{ time }}</option>
+        </select>
+        <p class="text-xs text-text-muted mt-1">Horarios en intervalos de 15 minutos</p>
 
         <!-- Mensaje de error de validación -->
         @if (hasDateTimeError()) {
@@ -57,24 +57,58 @@
 
       <!-- Selección de espacio -->
       <div>
-        <label class="block text-sm font-semibold text-text-primary mb-3">Selecciona un espacio:</label>
-        <div class="grid grid-cols-2 gap-3">
-          @for (space of availableSpaces; track space.id) {
-            <label
-              class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all hover:border-button-primary"
-              [ngClass]="{
-                'border-button-primary bg-blue-50': reserveForm.get('spaceId')?.value === space.id,
-                'border-gray-300': reserveForm.get('spaceId')?.value !== space.id
-              }">
-              <input
-                type="radio"
-                [value]="space.id"
-                formControlName="spaceId"
-                class="sr-only" />
-              <span class="font-semibold text-text-primary">{{ space.name }}</span>
-            </label>
-          }
+        <div class="flex items-center justify-between mb-3">
+          <label class="block text-sm font-semibold text-text-primary">Selecciona un espacio:</label>
+
+          <!-- Botón manual para recargar espacios -->
+          <button
+            type="button"
+            (click)="loadAvailableSpaces()"
+            class="text-xs text-button-primary hover:text-button-primary/80 font-medium flex items-center gap-1"
+            [disabled]="isLoadingSpaces">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Recargar espacios
+          </button>
         </div>
+
+        <!-- Loading indicator -->
+        @if (isLoadingSpaces) {
+          <div class="flex justify-center items-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-button-primary"></div>
+          </div>
+        }
+
+        <!-- Grid de espacios -->
+        @if (!isLoadingSpaces && availableSpaces.length > 0) {
+          <div class="grid grid-cols-2 gap-3">
+            @for (space of availableSpaces; track space.spaceId) {
+              <label
+                class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all hover:border-button-primary"
+                [ngClass]="{
+                  'border-button-primary bg-blue-50': reserveForm.get('spaceId')?.value === space.spaceId,
+                  'border-gray-300': reserveForm.get('spaceId')?.value !== space.spaceId
+                }">
+                <input
+                  type="radio"
+                  [value]="space.spaceId"
+                  formControlName="spaceId"
+                  class="sr-only" />
+                <span class="font-semibold text-text-primary">{{ space.code }}</span>
+              </label>
+            }
+          </div>
+        }
+
+        <!-- Mensaje cuando no hay espacios -->
+        @if (!isLoadingSpaces && availableSpaces.length === 0) {
+          <div class="text-center py-8 text-text-muted">
+            <p class="text-sm">No hay espacios disponibles para esta fecha y hora.</p>
+            <p class="text-xs mt-2">Intenta con otra fecha u horario.</p>
+          </div>
+        }
+
         @if (reserveForm.get('spaceId')?.invalid && reserveForm.get('spaceId')?.touched) {
           <p class="text-xs text-red-500 mt-1">Por favor selecciona un espacio</p>
         }
@@ -114,9 +148,19 @@
       <!-- Botón de acción -->
       <button
         type="submit"
-        [disabled]="reserveForm.invalid"
+        [disabled]="reserveForm.invalid || isLoading"
         class="w-full bg-button-primary text-white font-semibold py-3 px-4 rounded-lg hover:bg-button-primary/90 focus:ring-2 focus:ring-button-primary focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-        Confirmar Reserva
+        @if (isLoading) {
+          <span class="flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Procesando...
+          </span>
+        } @else {
+          Confirmar Reserva
+        }
       </button>
 
     </form>
