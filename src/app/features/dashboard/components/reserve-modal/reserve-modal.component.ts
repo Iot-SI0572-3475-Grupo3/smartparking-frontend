@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ReservationService } from '../../services/reservation.service';
+import { AuthenticationService } from '../../../iam/services/authentication.service';
 import { ParkingSpace } from '../../models/reservation.model';
 
 @Component({
@@ -20,21 +21,39 @@ export class ReserveModalComponent implements OnInit {
   availableSpaces: ParkingSpace[] = [];
   showSuccessModal = false;
   reservationSummary: any = null;
+  isLoading = false;
 
   // Fechas límite
   minDate: string = '';
-  maxDate: string = '';
+  maxDate: string = ''; // ← Ya no se usará para validación
   minTime: string = '';
+
+  // Usuario actual
+  private currentUserId: string = '';
 
   constructor(
     private fb: FormBuilder,
-    private reservationService: ReservationService
+    private reservationService: ReservationService,
+    private authService: AuthenticationService
   ) {}
 
   ngOnInit(): void {
     this.calculateDateLimits();
     this.initializeForm();
     this.loadAvailableSpaces();
+    this.getCurrentUserId();
+  }
+
+  /**
+   * Obtener el userId del usuario autenticado
+   */
+  private getCurrentUserId(): void {
+    this.authService.currentUserId.subscribe(
+      (userId: string) => {
+        this.currentUserId = userId;
+        console.log('🔑 Current User ID:', this.currentUserId);
+      }
+    );
   }
 
   /**
@@ -46,9 +65,8 @@ export class ReserveModalComponent implements OnInit {
     // Fecha mínima: HOY
     this.minDate = this.formatDateForInput(now);
 
-    // Fecha máxima: 24 horas desde ahora
-    const maxDateTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    this.maxDate = this.formatDateForInput(maxDateTime);
+    // ✅ ELIMINADO: Ya no hay límite máximo de 24 horas
+    // Se puede reservar cualquier fecha futura
 
     // Hora mínima: Ahora + 30 minutos
     const minDateTime = new Date(now.getTime() + 30 * 60 * 1000);
@@ -77,7 +95,7 @@ export class ReserveModalComponent implements OnInit {
   }
 
   /**
-   * Validador personalizado de fecha y hora
+   * Validador personalizado de fecha y hora (SIN LÍMITE DE 24 HORAS)
    */
   private dateTimeValidator(control: AbstractControl): ValidationErrors | null {
     const date = control.get('date')?.value;
@@ -88,17 +106,14 @@ export class ReserveModalComponent implements OnInit {
     const now = new Date();
     const selectedDateTime = new Date(`${date}T${startTime}`);
     const minDateTime = new Date(now.getTime() + 30 * 60 * 1000); // +30 min
-    const maxDateTime = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +24 horas
 
     // Validar que sea al menos 30 minutos en el futuro
     if (selectedDateTime < minDateTime) {
       return { tooSoon: true };
     }
 
-    // Validar que no exceda 24 horas
-    if (selectedDateTime > maxDateTime) {
-      return { tooFar: true };
-    }
+    // ✅ ELIMINADO: Validación de máximo 24 horas
+    // Ya no hay límite máximo
 
     return null;
   }
@@ -118,7 +133,7 @@ export class ReserveModalComponent implements OnInit {
       const minDateTime = new Date(now.getTime() + 30 * 60 * 1000);
       this.minTime = this.formatTimeForInput(minDateTime);
     } else {
-      // Si es MAÑANA, hora mínima = 00:00
+      // Si es MAÑANA o después, hora mínima = 00:00
       this.minTime = '00:00';
     }
 
@@ -152,28 +167,64 @@ export class ReserveModalComponent implements OnInit {
       return;
     }
 
+    if (!this.currentUserId) {
+      alert('❌ Error: No se pudo obtener el ID del usuario. Por favor, inicia sesión nuevamente.');
+      return;
+    }
+
+    this.isLoading = true;
+
     const { date, startTime, spaceId } = this.reserveForm.value;
-    const reservation = this.reservationService.createReservation(
-      spaceId,
-      new Date(date),
-      startTime
-    );
 
-    // ✅ CALCULAR LA HORA LÍMITE (hora de inicio + 30 minutos)
-    const [hours, minutes] = startTime.split(':').map(Number);
-    const deadlineDate = new Date(date);
-    deadlineDate.setHours(hours, minutes + 30);
-
-    // Preparar resumen
-    this.reservationSummary = {
-      space: reservation.spaceName,
-      date: this.formatDate(reservation.date),
-      time: reservation.startTime,
-      deadline: this.formatTime(deadlineDate) // ✅ Usar la hora calculada
+    // Construir el request para el backend
+    const request = {
+      spaceId: spaceId,
+      userId: this.currentUserId,
+      startTime: `${date}T${startTime}:00`, // ISO 8601 format
+      vehicleInfo: JSON.stringify({ plate: 'ABC123', color: 'Rojo' }), // Ejemplo - podrías agregar campos al formulario
+      specialRequirements: 'Cerca de la entrada' // Ejemplo - podrías agregar campos al formulario
     };
 
-    // Mostrar modal de éxito
-    this.showSuccessModal = true;
+    console.log('📤 Enviando reserva al backend:', request);
+
+    // Llamar al backend para crear la reserva
+    this.reservationService.createReservationHttp(request).subscribe({
+      next: (response) => {
+        console.log('✅ Reserva creada exitosamente:', response);
+        this.isLoading = false;
+
+        // ✅ CALCULAR LA HORA LÍMITE (hora de inicio + 30 minutos)
+        const [hours, minutes] = startTime.split(':').map(Number);
+        const deadlineDate = new Date(date);
+        deadlineDate.setHours(hours, minutes + 30);
+
+        // Preparar resumen usando los datos del backend
+        this.reservationSummary = {
+          space: response.spaceCode,
+          date: this.formatDate(new Date(response.date)),
+          time: response.startTime.substring(11, 16), // Extraer HH:mm
+          deadline: this.formatTime(deadlineDate)
+        };
+
+        // Mostrar modal de éxito
+        this.showSuccessModal = true;
+      },
+      error: (error) => {
+        console.error('❌ Error creando reserva:', error);
+        this.isLoading = false;
+
+        // Manejar diferentes tipos de errores
+        if (error.status === 401) {
+          alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        } else if (error.status === 409) {
+          alert('⚠️ El espacio ya está reservado. Por favor, selecciona otro.');
+        } else if (error.error?.message) {
+          alert(`Error: ${error.error.message}`);
+        } else {
+          alert('Error al crear la reserva. Por favor, intenta de nuevo.');
+        }
+      }
+    });
   }
 
   onAcceptSuccess(): void {
@@ -185,6 +236,7 @@ export class ReserveModalComponent implements OnInit {
   close(): void {
     this.reserveForm.reset();
     this.showSuccessModal = false;
+    this.isLoading = false;
     this.calculateDateLimits(); // Recalcular límites al cerrar
     this.initializeForm(); // Reinicializar formulario
     this.closed.emit();
@@ -197,11 +249,10 @@ export class ReserveModalComponent implements OnInit {
   }
 
   private formatDate(date: Date): string {
-    // ✅ FIX: Usar toLocaleDateString con la zona horaria correcta
     return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: 'long',
-      timeZone: 'America/Lima' // O tu zona horaria
+      timeZone: 'America/Lima'
     });
   }
 
@@ -215,15 +266,13 @@ export class ReserveModalComponent implements OnInit {
   }
 
   /**
-   * Mensajes de error personalizados
+   * Mensajes de error personalizados (SIN LÍMITE DE 24 HORAS)
    */
   getDateTimeError(): string {
     if (this.reserveForm.errors?.['tooSoon']) {
       return 'Debes reservar con al menos 30 minutos de anticipación';
     }
-    if (this.reserveForm.errors?.['tooFar']) {
-      return 'Solo puedes reservar con hasta 24 horas de anticipación';
-    }
+    // ✅ ELIMINADO: Mensaje de error "tooFar"
     return '';
   }
 
@@ -231,9 +280,8 @@ export class ReserveModalComponent implements OnInit {
    * Verificar si hay error de fecha/hora
    */
   hasDateTimeError(): boolean {
-    // Coerce possible undefined values to boolean to satisfy TypeScript's strictness.
     const errors = this.reserveForm.errors;
-    const hasDateTimeErrors = Boolean(errors?.['tooSoon'] || errors?.['tooFar']);
+    const hasDateTimeErrors = Boolean(errors?.['tooSoon']); // ✅ Solo valida "tooSoon"
     const touched = Boolean(this.reserveForm.get('date')?.touched || this.reserveForm.get('startTime')?.touched);
     return hasDateTimeErrors && touched;
   }
