@@ -51,7 +51,7 @@ export class ReserveModalComponent implements OnInit {
     this.authService.currentUserId.subscribe(
       (userId: string) => {
         this.currentUserId = userId;
-        console.log('🔑 Current User ID:', this.currentUserId);
+        console.log('Current User ID:', this.currentUserId);
       }
     );
   }

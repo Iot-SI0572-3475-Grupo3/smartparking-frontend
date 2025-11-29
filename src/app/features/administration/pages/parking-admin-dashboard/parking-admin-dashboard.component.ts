@@ -37,7 +37,8 @@ export class ParkingAdminDashboardComponent implements OnInit {
     this.parkingSpaceService.getParkingSpaceByStatus('reserved')
       .subscribe({
       next: (res: ParkingSpaceModel[]) => {
-          this.reservedSpaces = res.length;
+        console.log('Reserved spaces:', res);
+        this.reservedSpaces = res.length;
         }
       })
     this.parkingSpaceService.getParkingSpaceByStatus('occupied')

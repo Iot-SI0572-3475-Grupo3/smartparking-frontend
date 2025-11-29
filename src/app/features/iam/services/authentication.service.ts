@@ -37,6 +37,31 @@ export class AuthenticationService {
   ) {
   }
 
+  initSession() {
+    if (typeof window === 'undefined') return; // SSR protection
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      this.signedIn.next(false);
+      return;
+    }
+
+    try {
+      const data = decodeJwt(token);
+
+      this.signedIn.next(true);
+      this.signedInUserId.next(data.userId || data.id || data.sub || '');
+      this.signedInUserRole.next(data.role);
+    } catch (e) {
+      console.error('Invalid token', e);
+      localStorage.removeItem('token');
+      this.signedIn.next(false);
+    }
+  }
+
+
+
   get isSignedIn() {
     return this.signedIn.asObservable();
   }
