@@ -117,6 +117,7 @@ export class ParkingAdminDashboardComponent implements OnInit {
   }
 
   confirmAddSpaces() {
+    console.log(this.newSpacesCount);
     if (!this.newParkingSpace) {
       this.newParkingSpace = {} as ParkingSpaceRequest;
     }
@@ -124,7 +125,15 @@ export class ParkingAdminDashboardComponent implements OnInit {
       this.newParkingSpace.code = this.generateSpaceCode(this.ParkingSpacesList.length+i);
       this.newParkingSpace.status = 'available';
       console.log('se agrego: ', this.newParkingSpace);
-      this.parkingSpaceService.postParkingSpace(this.newParkingSpace);
+      this.parkingSpaceService.postParkingSpace(this.newParkingSpace).subscribe({
+        next: (res: ParkingSpaceModel) => {
+          this.ParkingSpacesList.push(res);
+        },
+        error: (err) => {
+          console.error('Error adding parking space: ', err);
+        }
+      });
+      console.log('se confirmo: ', this.newParkingSpace);
     }
   }
 
