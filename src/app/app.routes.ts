@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { ProfileSettingsComponent } from './features/profile/pages/profile-settings/profile-settings.component';
 import { HistoryPageComponent } from './features/profile/pages/history-page/history-page.component';
 import {UserProfileComponent} from "./features/profile/pages/user-profile/user-profile.component";
-import {ParkingAdminDashboardComponent} from "./features/dashboard/pages/parking-admin-dashboard/parking-admin-dashboard.component";
+import {ParkingAdminDashboardComponent} from "./features/administration/pages/parking-admin-dashboard/parking-admin-dashboard.component";
 import {authenticationGuard} from "./features/iam/services/authentication.guard";
 
 export const routes: Routes = [
