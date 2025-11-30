@@ -9,14 +9,16 @@
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
 
         <!-- Espacios Disponibles -->
-        <div class="lg:col-span-3">
-          <h2 class="text-text-primary font-bold text-2xl mb-6">Espacios Disponibles</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            @for (space of getSpaceCardData(); track space.id) {
-              <app-space-card [space]="space"></app-space-card>
-            }
-          </div>
+      <div class="lg:col-span-3">
+        <h2 class="text-text-primary font-bold text-2xl mb-6">Espacios Disponibles</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          @for (space of getSpaceCardData(); track space.id) {
+            <div class="aspect-square">
+              <app-space-card [space]="space" class="h-full"></app-space-card>
+            </div>
+          }
         </div>
+      </div>
 
         <!-- Nueva Reserva -->
         <div class="lg:col-span-1">
