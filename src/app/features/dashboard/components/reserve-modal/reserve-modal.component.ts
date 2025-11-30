@@ -251,40 +251,49 @@ export class ReserveModalComponent implements OnInit {
 
     const { date, startTime, spaceId } = this.reserveForm.value;
 
-    // Construir el request para el backend
     const request = {
       spaceId: spaceId,
       userId: this.currentUserId,
       startTime: `${date}T${startTime}:00`,
-      vehicleInfo: '', // String vacío como solicitaste
-      specialRequirements: '' // String vacío como solicitaste
+      vehicleInfo: JSON.stringify({ plate: 'ABC123', color: 'Rojo' }),
+      specialRequirements: 'Cerca de la entrada'
     };
 
     console.log('📤 Enviando reserva al backend:', request);
 
-    // Llamar al backend para crear la reserva
+    // ✅ Crear reserva
     this.reservationService.createReservationHttp(request).subscribe({
       next: (response) => {
-        console.log('✅ Reserva creada exitosamente:', response);
-        this.isLoading = false;
+        console.log('✅ Reserva creada:', response);
 
-        // Calcular la hora límite (hora de inicio + 30 minutos)
-        const [hours, minutes] = startTime.split(':').map(Number);
-        const deadlineDate = new Date(date);
-        deadlineDate.setHours(hours, minutes + 30);
+        // ✅ Confirmar automáticamente
+        this.reservationService.confirmReservationHttp(response.reservationId).subscribe({
+          next: (confirmResponse) => {
+            console.log('✅ Reserva confirmada:', confirmResponse);
+            this.isLoading = false;
 
-        // Preparar resumen usando los datos del backend
-        const selectedSpace = this.availableSpaces.find(s => s.spaceId === spaceId);
+            // ✅ Calcular deadline
+            const [hours, minutes] = startTime.split(':').map(Number);
+            const deadlineDate = new Date(date);
+            deadlineDate.setHours(hours, minutes + 30);
 
-        this.reservationSummary = {
-          space: selectedSpace?.code || response.spaceCode,
-          date: this.formatDate(new Date(response.date)),
-          time: response.startTime.substring(11, 16),
-          deadline: this.formatTime(deadlineDate)
-        };
+            // Preparar resumen
+            this.reservationSummary = {
+              space: confirmResponse.spaceCode,
+              date: this.formatDate(new Date(confirmResponse.date)),
+              time: confirmResponse.startTime.substring(11, 16),
+              deadline: this.formatTime(deadlineDate)
+            };
 
-        // Mostrar modal de éxito
-        this.showSuccessModal = true;
+            // Mostrar modal de éxito
+            this.showSuccessModal = true;
+          },
+          error: (error) => {
+            console.error('❌ Error confirmando reserva:', error);
+            this.isLoading = false;
+            alert('Error al confirmar la reserva. Por favor, intenta de nuevo.');
+          }
+        });
       },
       error: (error) => {
         console.error('❌ Error creando reserva:', error);
