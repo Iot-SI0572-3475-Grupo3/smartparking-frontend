@@ -28,6 +28,9 @@
           <th class="text-left py-2 px-3 text-text-primary font-bold text-sm">
             Fin
           </th>
+          <th class="text-left py-2 px-3 text-text-primary font-bold text-sm">
+            Estado
+          </th>
         </tr>
         </thead>
 
@@ -36,10 +39,9 @@
           @for (record of displayRecords; track record.id) {
             <tr
               class="border-b border-gray-200 hover:bg-background-secondary transition-colors duration-200 cursor-pointer"
-              (click)="onRecordClick(record)"
-            >
+              (click)="onRecordClick(record)">
               <td class="py-2 px-3 text-text-primary text-sm">
-                {{ record.space }}
+                {{ getSpaceCode(record.space) }}
               </td>
               <td class="py-2 px-3 text-text-primary text-sm">
                 {{ record.date }}
@@ -50,12 +52,17 @@
               <td class="py-2 px-3 text-text-primary text-sm">
                 {{ record.endTime }}
               </td>
+              <td class="py-2 px-3 text-sm">
+                <span [ngClass]="getStatusClass(record.status)">
+                  {{ getStatusText(record.status) }}
+                </span>
+              </td>
             </tr>
           }
 
           @if (displayRecords.length === 0) {
             <tr>
-              <td colspan="4" class="py-6 text-center text-text-muted text-sm">
+              <td colspan="5" class="py-6 text-center text-text-muted text-sm">
                 No hay registros de historial disponibles
               </td>
             </tr>
@@ -70,8 +77,7 @@
       <div class="mt-4 text-center">
         <button
           (click)="onViewAllClick()"
-          class="text-button-primary hover:text-button-primary/80 font-medium text-sm transition-colors duration-200"
-        >
+          class="text-button-primary hover:text-button-primary/80 font-medium text-sm transition-colors duration-200">
           Ver historial completo
         </button>
       </div>
