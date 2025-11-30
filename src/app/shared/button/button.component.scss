@@ -1,0 +1,11 @@
+button {
+  display: inline-block;
+  width: 100%;
+  max-width: 240px; // Limita el ancho máximo del botón
+  white-space: nowrap;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
