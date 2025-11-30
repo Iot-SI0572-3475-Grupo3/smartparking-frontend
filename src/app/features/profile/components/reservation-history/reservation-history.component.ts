@@ -7,12 +7,12 @@ import { HistoryService, HistoryRecord } from '../../../dashboard/services/histo
   standalone: true,
   imports: [CommonModule],
   templateUrl: './reservation-history.component.html',
-  styleUrl: './reservation-history.component.scss'
+  styleUrls: ['./reservation-history.component.scss']
 })
 export class ReservationHistoryComponent implements OnInit {
   reservations: HistoryRecord[] = [];
   currentPage = 1;
-  itemsPerPage = 7;
+  itemsPerPage = 10;
   totalPages = 0;
   pages: number[] = [];
   isLoading = true;
@@ -27,12 +27,18 @@ export class ReservationHistoryComponent implements OnInit {
     this.isLoading = true;
     this.historyService.getAllHistory().subscribe({
       next: (records) => {
-        this.reservations = records;
+        // ✅ Ordenar por más reciente primero
+        this.reservations = records.sort((a, b) => {
+          const dateA = new Date(a.date + ' ' + a.startTime);
+          const dateB = new Date(b.date + ' ' + b.startTime);
+          return dateB.getTime() - dateA.getTime();
+        });
         this.calculatePagination();
         this.isLoading = false;
+        console.log('✅ Historial completo cargado:', records);
       },
       error: (error) => {
-        console.error('Error loading reservations:', error);
+        console.error('❌ Error cargando historial completo:', error);
         this.isLoading = false;
       }
     });
@@ -65,6 +71,31 @@ export class ReservationHistoryComponent implements OnInit {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
     }
+  }
+
+  // ✅ Extrae solo el código del espacio
+  getSpaceCode(spaceName: string): string {
+    return spaceName.replace('Espacio ', '');
+  }
+
+  // ✅ Texto del estado
+  getStatusText(status: string): string {
+    const statusMap: Record<string, string> = {
+      'completed': 'Completada',
+      'cancelled': 'Cancelada',
+      'expired': 'Ausencia'
+    };
+    return statusMap[status] || status;
+  }
+
+  // ✅ Clases CSS del estado
+  getStatusClass(status: string): string {
+    const classMap: Record<string, string> = {
+      'completed': 'text-device-available font-semibold',
+      'cancelled': 'text-device-maintenance font-semibold',
+      'expired': 'text-device-occupied font-semibold'
+    };
+    return classMap[status] || 'text-text-muted';
   }
 
   get visiblePages(): (number | string)[] {
