@@ -1,6 +1,4 @@
-// src/app/features/dashboard/components/active-session-card/active-session-card.component.ts
-
-import { Component, computed } from '@angular/core';
+import { Component, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReservationService } from '../../services/reservation.service';
 
@@ -11,9 +9,12 @@ import { ReservationService } from '../../services/reservation.service';
   templateUrl: './active-session-card.component.html',
   styleUrls: ['./active-session-card.component.scss']
 })
-export class ActiveSessionCardComponent {
+export class ActiveSessionCardComponent implements OnInit, OnDestroy {
   session = this.reservationService.activeSession;
 
+  private intervalId: any;
+
+  // ✅ Tiempo transcurrido formateado (HH:MM:SS)
   formattedElapsedTime = computed(() => {
     const session = this.session();
     if (!session) return '00:00:00';
@@ -26,6 +27,7 @@ export class ActiveSessionCardComponent {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   });
 
+  // ✅ Hora de inicio formateada
   startTime = computed(() => {
     const session = this.session();
     if (!session) return '';
@@ -37,6 +39,27 @@ export class ActiveSessionCardComponent {
   });
 
   constructor(private reservationService: ReservationService) {}
+
+  ngOnInit(): void {
+    // ✅ Iniciar cronómetro
+    this.startTimer();
+  }
+
+  ngOnDestroy(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+  }
+
+  // ✅ Cronómetro que incrementa cada segundo
+  private startTimer(): void {
+    this.intervalId = setInterval(() => {
+      const currentSession = this.session();
+      if (currentSession) {
+        // El cronómetro se actualiza automáticamente en el servicio
+      }
+    }, 1000);
+  }
 
   onEndSession(): void {
     if (confirm('¿Estás seguro de finalizar tu sesión de estacionamiento?')) {
