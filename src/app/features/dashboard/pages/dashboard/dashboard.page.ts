@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+// src/app/features/dashboard/pages/dashboard/dashboard.page.ts
+
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SpaceCardComponent, SpaceCardData } from '../../components/space-card/space-card.component';
 import { HistoryTableComponent } from '../../components/history-table/history-table.component';
@@ -11,7 +13,7 @@ import { ReservationService } from '../../services/reservation.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { Router } from '@angular/router';
 import { TestControlsComponent } from '../../components/test-controls/test-controls.component';
-
+import { Subscription, interval } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -30,8 +32,9 @@ import { TestControlsComponent } from '../../components/test-controls/test-contr
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss']
 })
-export class DashboardPageComponent implements OnInit {
-  // Signals del servicio
+export class DashboardPageComponent implements OnInit, OnDestroy {
+
+  // ✅ Signals del servicio (reactivos)
   parkingSpaces = this.reservationService.parkingSpaces;
   hasActiveReservation = this.reservationService.hasActiveReservation;
   hasActiveSession = this.reservationService.hasActiveSession;
@@ -39,11 +42,12 @@ export class DashboardPageComponent implements OnInit {
   // Control del modal
   showReserveModal = false;
 
-  // Número actual de ausencias (mock)
+  // Estado de ausencias y permisos
   currentAbsences: number = 0;
-
-  // Control de si el usuario puede reservar
   canReserve: boolean = true;
+
+  // ✅ Subscripción para auto-refresh
+  private refreshSubscription?: Subscription;
 
   constructor(
     private reservationService: ReservationService,
@@ -53,34 +57,35 @@ export class DashboardPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDashboardData();
+    this.startAutoRefresh();
   }
 
-  /**
-   * Carga los datos del dashboard desde el backend
-   */
+  ngOnDestroy(): void {
+    this.refreshSubscription?.unsubscribe();
+  }
+
+  // ===== NUEVO: Auto-refresh cada 10 segundos =====
+  private startAutoRefresh(): void {
+    this.refreshSubscription = interval(10000).subscribe(() => {
+      this.reservationService.loadParkingSpaces();
+      this.reservationService.loadActiveReservation();
+    });
+  }
+
+  // ===== Cargar datos del dashboard =====
   loadDashboardData(): void {
     this.dashboardService.getUserDashboard().subscribe({
       next: (response) => {
         console.log('✅ Dashboard data loaded:', response);
-
-        // Actualizar ausencias
         this.currentAbsences = response.absenceCount;
-
-        // Actualizar si el usuario puede reservar
         this.canReserve = response.canReserve;
 
-        // Mostrar alerta si no puede reservar
         if (!response.canReserve) {
           alert('⚠️ No puedes crear nuevas reservas debido a ausencias acumuladas.');
         }
-
-        // Opcional: sincronizar espacios disponibles con el backend
-        // this.syncParkingSpaces(response.availableSpaces);
       },
       error: (error) => {
         console.error('❌ Error loading dashboard:', error);
-
-        // Manejar errores específicos
         if (error.status === 401) {
           alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
           this.router.navigate(['/login']);
@@ -91,7 +96,7 @@ export class DashboardPageComponent implements OnInit {
     });
   }
 
-  // Convertir ParkingSpace a SpaceCardData para el componente
+  // ===== Convertir ParkingSpace a SpaceCardData =====
   getSpaceCardData(): SpaceCardData[] {
     return this.parkingSpaces().map(space => ({
       id: space.id,
@@ -100,9 +105,8 @@ export class DashboardPageComponent implements OnInit {
     }));
   }
 
-  // Abrir modal de reserva
+  // ===== Abrir modal de reserva =====
   openReserveModal(): void {
-    // Solo permitir si no hay reserva ni sesión activa Y si puede reservar
     if (this.hasActiveReservation() || this.hasActiveSession()) {
       alert('Ya tienes una reserva o sesión activa');
       return;
@@ -116,28 +120,29 @@ export class DashboardPageComponent implements OnInit {
     this.showReserveModal = true;
   }
 
-  // Cerrar modal de reserva
+  // ===== Cerrar modal de reserva =====
   closeReserveModal(): void {
     this.showReserveModal = false;
   }
 
-  // Manejar creación exitosa de reserva
+  // ===== Manejar creación exitosa de reserva =====
   onReservationCreated(): void {
     this.showReserveModal = false;
     console.log('✅ Reserva creada exitosamente');
 
-    // Recargar datos del dashboard después de crear reserva
-    this.loadDashboardData();
+    // ✅ Recargar datos del dashboard
+    setTimeout(() => {
+      this.loadDashboardData();
+    }, 1000);
   }
 
-  // Navegar a historial completo
+  // ===== Navegar a historial completo =====
   onViewAllHistory(): void {
     this.router.navigate(['/history']);
   }
 
-  // Manejar click en registro del historial
+  // ===== Manejar click en registro del historial =====
   onHistoryRecordClick(record: any): void {
     console.log('📋 Registro clickeado:', record);
-    // Aquí podrías abrir un modal con detalles
   }
 }
