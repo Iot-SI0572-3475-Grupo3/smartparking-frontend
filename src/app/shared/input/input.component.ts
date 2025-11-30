@@ -21,19 +21,19 @@ export class InputComponent implements ControlValueAccessor {
   @Input() id?: string;
   @Input() autocomplete?: string;
   @Input() customClass?: string;
+  @Input() isDisabled!: boolean;
 
   value = '';
-  isDisabled = false;
 
   private onChange: (_: any) => void = () => {};
   private onTouched: () => void = () => {};
+
 
   writeValue(obj: any): void {
     this.value = obj ?? '';
   }
   registerOnChange(fn: any): void { this.onChange = fn; }
   registerOnTouched(fn: any): void { this.onTouched = fn; }
-  setDisabledState(isDisabled: boolean): void { this.isDisabled = isDisabled; }
 
   onInput(event: Event) {
     const v = (event.target as HTMLInputElement).value;

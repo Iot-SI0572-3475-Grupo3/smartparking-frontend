@@ -1,5 +1,3 @@
-// src/app/features/dashboard/components/active-reservation-card/active-reservation-card.component.ts
-
 import { Component, OnInit, OnDestroy, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReservationService } from '../../services/reservation.service';
@@ -38,6 +36,8 @@ export class ActiveReservationCardComponent implements OnInit, OnDestroy {
   constructor(private reservationService: ReservationService) {}
 
   ngOnInit(): void {
+    // ✅ CARGAR RESERVA ACTIVA DEL BACKEND
+    this.loadActiveReservation();
     this.startCountdown();
   }
 
@@ -45,6 +45,24 @@ export class ActiveReservationCardComponent implements OnInit, OnDestroy {
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
+  }
+
+  // ✅ NUEVO MÉTODO: Cargar desde backend
+  private loadActiveReservation(): void {
+    this.reservationService.getActiveReservationHttp().subscribe({
+      next: (response) => {
+        console.log('✅ Reserva activa cargada desde backend:', response);
+        // Aquí podrías actualizar el signal local si quieres
+        // O transformar la respuesta para mostrarla directamente
+      },
+      error: (error) => {
+        if (error.status === 204) {
+          console.log('ℹ️ No hay reserva activa');
+        } else {
+          console.error('❌ Error cargando reserva activa:', error);
+        }
+      }
+    });
   }
 
   private startCountdown(): void {
@@ -75,7 +93,20 @@ export class ActiveReservationCardComponent implements OnInit, OnDestroy {
 
   onCancelReservation(): void {
     if (confirm('¿Estás seguro de cancelar tu reserva?')) {
-      this.reservationService.cancelReservation();
+      const res = this.reservation();
+      if (!res) return;
+
+      // ✅ LLAMAR AL BACKEND PARA CANCELAR
+      this.reservationService.cancelReservationHttp(res.id, 'Cancelado por el usuario').subscribe({
+        next: () => {
+          console.log('✅ Reserva cancelada en backend');
+          this.reservationService.cancelReservation(); // Actualizar estado local
+        },
+        error: (error) => {
+          console.error('❌ Error cancelando reserva:', error);
+          alert('Error al cancelar la reserva. Intenta de nuevo.');
+        }
+      });
     }
   }
 }
