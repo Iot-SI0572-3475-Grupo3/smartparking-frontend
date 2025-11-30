@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface HistoryRecord {
   id: string;
@@ -8,6 +9,7 @@ export interface HistoryRecord {
   date: string;
   startTime: string;
   endTime: string;
+  status: string; // ✅ Nuevo campo
 }
 
 @Injectable({
@@ -15,154 +17,80 @@ export interface HistoryRecord {
 })
 export class HistoryService {
 
-  // Fake API - Base de datos simulada
-  private historyRecords: HistoryRecord[] = [
-    {
-      id: '1',
-      space: 'Espacio A',
-      date: '15/05/2025',
-      startTime: '8:00',
-      endTime: '12:00'
-    },
-    {
-      id: '2',
-      space: 'Espacio B',
-      date: '10/05/2025',
-      startTime: '14:00',
-      endTime: '16:00'
-    },
-    {
-      id: '3',
-      space: 'Espacio C',
-      date: '05/05/2025',
-      startTime: '09:00',
-      endTime: '11:00'
-    },
-    {
-      id: '4',
-      space: 'Espacio D',
-      date: '01/05/2025',
-      startTime: '09:00',
-      endTime: '11:00'
-    },
-    {
-      id: '5',
-      space: 'Espacio B',
-      date: '30/04/2025',
-      startTime: '10:00',
-      endTime: '19:00'
-    },
-    {
-      id: '6',
-      space: 'Espacio A',
-      date: '25/04/2025',
-      startTime: '07:00',
-      endTime: '09:00'
-    },
-    {
-      id: '7',
-      space: 'Espacio C',
-      date: '20/04/2025',
-      startTime: '09:00',
-      endTime: '12:00'
-    },
-    {
-      id: '8',
-      space: 'Espacio A',
-      date: '18/04/2025',
-      startTime: '13:00',
-      endTime: '15:00'
-    },
-    {
-      id: '9',
-      space: 'Espacio B',
-      date: '15/04/2025',
-      startTime: '08:00',
-      endTime: '10:00'
-    },
-    {
-      id: '10',
-      space: 'Espacio C',
-      date: '12/04/2025',
-      startTime: '11:00',
-      endTime: '14:00'
-    },
-    {
-      id: '11',
-      space: 'Espacio D',
-      date: '10/04/2025',
-      startTime: '16:00',
-      endTime: '18:00'
-    },
-    {
-      id: '12',
-      space: 'Espacio A',
-      date: '08/04/2025',
-      startTime: '09:00',
-      endTime: '11:00'
-    },
-    {
-      id: '13',
-      space: 'Espacio B',
-      date: '05/04/2025',
-      startTime: '14:00',
-      endTime: '17:00'
-    },
-    {
-      id: '14',
-      space: 'Espacio C',
-      date: '03/04/2025',
-      startTime: '08:00',
-      endTime: '10:00'
-    },
-    {
-      id: '15',
-      space: 'Espacio D',
-      date: '01/04/2025',
-      startTime: '12:00',
-      endTime: '15:00'
-    }
-  ];
+  private basepath: string = `${environment.apiUrl}`;
 
-  constructor() { }
+  private httpOptions = {
+    headers: new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    })
+  };
+
+  constructor(private http: HttpClient) {}
 
   /**
-   * Obtener todos los registros del historial
-   * Simula una llamada HTTP con delay
+   * Obtener historial desde el backend
    */
   getAllHistory(): Observable<HistoryRecord[]> {
-    // Simula delay de red de 500ms
-    return of(this.historyRecords).pipe(
-      delay(500)
-    );
+    return this.http.get<any[]>(`${this.basepath}/reservation/history`, this.httpOptions)
+      .pipe(
+        map(reservations => reservations.map(r => this.mapToHistoryRecord(r)))
+      );
   }
 
   /**
-   * Obtener los últimos N registros del historial
-   * @param limit - Número de registros a obtener
+   * Obtener últimas N reservas
    */
   getRecentHistory(limit: number): Observable<HistoryRecord[]> {
-    const recentRecords = this.historyRecords.slice(0, limit);
-    return of(recentRecords).pipe(
-      delay(500)
+    return this.getAllHistory().pipe(
+      map(records => records.slice(0, limit))
     );
   }
 
   /**
-   * Obtener un registro específico por ID
-   * @param id - ID del registro
+   * Mapear respuesta del backend a HistoryRecord
    */
-  getHistoryById(id: string): Observable<HistoryRecord | undefined> {
-    const record = this.historyRecords.find(r => r.id === id);
-    return of(record).pipe(
-      delay(500)
-    );
+  private mapToHistoryRecord(reservation: any): HistoryRecord {
+    const startDate = new Date(reservation.startTime);
+    const endDate = reservation.endTime ? new Date(reservation.endTime) : null;
+
+    return {
+      id: reservation.reservationId,
+      space: `Espacio ${reservation.spaceCode}`,
+      date: this.formatDate(startDate),
+      startTime: this.formatTime(startDate),
+      endTime: endDate ? this.formatTime(endDate) : '-',
+      status: reservation.status // ✅ completed, cancelled, expired
+    };
   }
 
   /**
-   * Obtener el total de registros
+   * Formatear fecha: "29 de noviembre"
    */
-  getTotalRecords(): number {
-    return this.historyRecords.length;
+  private formatDate(date: Date): string {
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long'
+    });
+  }
+
+  /**
+   * Formatear hora: "17:00"
+   */
+  private formatTime(date: Date): string {
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  }
+
+  /**
+   * Total de registros
+   */
+  getTotalRecords(): Observable<number> {
+    return this.getAllHistory().pipe(
+      map(records => records.length)
+    );
   }
 }
