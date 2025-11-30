@@ -1,6 +1,6 @@
-/* 
+/*
  * Space Card Component SmartParking - 100% Tailwind CSS
- * 
+ *
  * Todos los estilos están manejados por Tailwind CSS.
  * Este archivo se mantiene para futuras personalizaciones específicas
  * que no puedan ser manejadas por las utilities de Tailwind.
@@ -18,4 +18,18 @@
 
 .animate-pulse-glow {
   animation: pulse-glow 2s infinite;
+}
+
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.space-card-container {
+  min-height: 140px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
