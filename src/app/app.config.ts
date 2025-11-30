@@ -6,7 +6,6 @@ import { provideClientHydration } from '@angular/platform-browser';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {authenticationInterceptor} from "./features/iam/services/authentication.interceptor";
 
-
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
