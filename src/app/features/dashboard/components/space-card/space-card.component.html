@@ -1,13 +1,17 @@
-<div class="bg-background-primary rounded-xl border border-gray-300 p-4 min-h-[100px] flex flex-col justify-center items-center space-y-3 shadow-md">
+<!-- Space Card con altura uniforme -->
+<div class="bg-background-primary rounded-xl border border-gray-300 p-4 h-full min-h-[140px] flex flex-col justify-center items-center space-y-3 shadow-md">
 
-  <!-- Nombre del espacio -->
+  <!-- Título "Espacio" -->
+  <p class="text-text-secondary text-xs font-medium">Espacio</p>
+
+  <!-- Código del espacio -->
   <h3 class="text-text-primary font-bold text-lg text-center">
-    {{ space.name }}
+    {{ space.name.replace('Espacio ', '') }}
   </h3>
 
   <!-- Estado del espacio -->
   <div
-    class="px-6 py-2 rounded-lg text-center font-medium text-sm"
+    class="px-6 py-2 rounded-lg text-center font-medium text-sm w-full"
     [class]="statusConfig.bgColor + ' ' + statusConfig.textColor">
     {{ statusConfig.text }}
   </div>
