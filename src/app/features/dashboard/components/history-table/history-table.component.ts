@@ -1,56 +1,77 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReservationService } from '../../services/reservation.service'; // ✅ CAMBIAR IMPORT
+import { HistoryService, HistoryRecord } from '../../services/history.service';
 
 @Component({
   selector: 'app-history-table',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './history-table.component.html',
-  styleUrl: './history-table.component.scss'
+  styleUrls: ['./history-table.component.scss']
 })
 export class HistoryTableComponent implements OnInit {
+  @Input() maxRecords: number = 5;
   @Input() showViewAllLink: boolean = true;
-  @Input() maxRecords: number = 4;
 
   @Output() viewAllClicked = new EventEmitter<void>();
-  @Output() recordClicked = new EventEmitter<any>();
+  @Output() recordClicked = new EventEmitter<HistoryRecord>();
 
-  historyRecords: any[] = [];
-  isLoading = true;
+  displayRecords: HistoryRecord[] = [];
+  isLoading: boolean = true;
 
-  constructor(private reservationService: ReservationService) {} // ✅ CAMBIAR SERVICIO
+  constructor(private historyService: HistoryService) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadHistory();
   }
 
-  loadHistory() {
+  loadHistory(): void {
     this.isLoading = true;
 
-    // ✅ LLAMAR AL BACKEND
-    this.reservationService.getReservationHistoryHttp().subscribe({
+    this.historyService.getRecentHistory(this.maxRecords).subscribe({
       next: (records) => {
-        this.historyRecords = records.slice(0, this.maxRecords); // Limitar según maxRecords
+        this.displayRecords = records;
         this.isLoading = false;
-        console.log('✅ Historial cargado desde backend:', records);
+        console.log('✅ Historial cargado:', records);
       },
       error: (error) => {
-        console.error('❌ Error loading history:', error);
+        console.error('❌ Error cargando historial:', error);
         this.isLoading = false;
+        this.displayRecords = [];
       }
     });
   }
 
-  get displayRecords(): any[] {
-    return this.historyRecords;
+  // ✅ Extrae solo el código del espacio (sin "Espacio")
+  getSpaceCode(spaceName: string): string {
+    return spaceName.replace('Espacio ', '');
   }
 
-  onViewAllClick() {
-    this.viewAllClicked.emit();
+  // ✅ Retorna el texto del estado en español
+  getStatusText(status: string): string {
+    const statusMap: Record<string, string> = {
+      'completed': 'Completada',
+      'cancelled': 'Cancelada',
+      'expired': 'Ausencia'
+    };
+    return statusMap[status] || status;
   }
 
-  onRecordClick(record: any) {
+  // ✅ Retorna clases CSS según el estado
+  getStatusClass(status: string): string {
+    const classMap: Record<string, string> = {
+      'completed': 'text-device-available font-semibold',
+      'cancelled': 'text-device-maintenance font-semibold',
+      'expired': 'text-device-occupied font-semibold'
+    };
+    return classMap[status] || 'text-text-muted';
+  }
+
+  onRecordClick(record: HistoryRecord): void {
     this.recordClicked.emit(record);
+  }
+
+  onViewAllClick(): void {
+    this.viewAllClicked.emit();
   }
 }
