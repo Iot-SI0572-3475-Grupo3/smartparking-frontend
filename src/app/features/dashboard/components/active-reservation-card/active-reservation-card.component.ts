@@ -1,3 +1,5 @@
+// src/app/features/dashboard/components/active-reservation-card/active-reservation-card.component.ts
+
 import { Component, OnInit, OnDestroy, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReservationService } from '../../services/reservation.service';
@@ -11,15 +13,20 @@ import { ReservationService } from '../../services/reservation.service';
 })
 export class ActiveReservationCardComponent implements OnInit, OnDestroy {
   reservation = this.reservationService.activeReservation;
-
-  // ✅ AGREGAR ESTO - Exponer Math al template
   readonly Math = Math;
 
   private intervalId: any;
   remainingTime = signal<number>(0);
 
+  // ✅ Indicador de si la reserva ya comenzó
+  hasStarted = computed(() => {
+    const res = this.reservation();
+    if (!res) return false;
+    return new Date().getTime() >= new Date(res.startTime).getTime();
+  });
+
   progressPercentage = computed(() => {
-    const total = 30 * 60;
+    const total = 30 * 60; // 30 minutos
     const remaining = this.remainingTime();
     return Math.max(0, Math.min(100, (remaining / total) * 100));
   });
@@ -33,36 +40,40 @@ export class ActiveReservationCardComponent implements OnInit, OnDestroy {
 
   isWarning = computed(() => this.remainingTime() < 5 * 60);
 
+  // ✅ Formato de fecha legible
+  formattedDate = computed(() => {
+    const res = this.reservation();
+    if (!res) return '';
+
+    const date = new Date(res.startTime);
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  });
+
+  // ✅ Formato de hora legible
+  formattedStartTime = computed(() => {
+    const res = this.reservation();
+    if (!res) return '';
+
+    const date = new Date(res.startTime);
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  });
+
   constructor(private reservationService: ReservationService) {}
 
   ngOnInit(): void {
-    // ✅ CARGAR RESERVA ACTIVA DEL BACKEND
-    this.loadActiveReservation();
     this.startCountdown();
   }
 
   ngOnDestroy(): void {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-    }
-  }
-
-  // ✅ NUEVO MÉTODO: Cargar desde backend
-  private loadActiveReservation(): void {
-    this.reservationService.getActiveReservationHttp().subscribe({
-      next: (response) => {
-        console.log('✅ Reserva activa cargada desde backend:', response);
-        // Aquí podrías actualizar el signal local si quieres
-        // O transformar la respuesta para mostrarla directamente
-      },
-      error: (error) => {
-        if (error.status === 204) {
-          console.log('ℹ️ No hay reserva activa');
-        } else {
-          console.error('❌ Error cargando reserva activa:', error);
-        }
-      }
-    });
+    if (this.intervalId) clearInterval(this.intervalId);
   }
 
   private startCountdown(): void {
@@ -70,10 +81,7 @@ export class ActiveReservationCardComponent implements OnInit, OnDestroy {
 
     this.intervalId = setInterval(() => {
       this.updateRemainingTime();
-
-      if (this.remainingTime() <= 0) {
-        clearInterval(this.intervalId);
-      }
+      if (this.remainingTime() <= 0) clearInterval(this.intervalId);
     }, 1000);
   }
 
@@ -85,9 +93,16 @@ export class ActiveReservationCardComponent implements OnInit, OnDestroy {
     }
 
     const now = Date.now();
-    const deadline = res.arrivalDeadline.getTime();
-    const remaining = Math.max(0, Math.floor((deadline - now) / 1000));
+    const startTime = new Date(res.startTime).getTime();
+    const deadline = startTime + (30 * 60 * 1000); // 30 minutos después del inicio
 
+    // ✅ Solo cuenta si ya empezó la reserva
+    if (now < startTime) {
+      this.remainingTime.set(30 * 60); // 30 minutos completos
+      return;
+    }
+
+    const remaining = Math.max(0, Math.floor((deadline - now) / 1000));
     this.remainingTime.set(remaining);
   }
 
@@ -96,11 +111,10 @@ export class ActiveReservationCardComponent implements OnInit, OnDestroy {
       const res = this.reservation();
       if (!res) return;
 
-      // ✅ LLAMAR AL BACKEND PARA CANCELAR
       this.reservationService.cancelReservationHttp(res.id, 'Cancelado por el usuario').subscribe({
         next: () => {
-          console.log('✅ Reserva cancelada en backend');
-          this.reservationService.cancelReservation(); // Actualizar estado local
+          console.log('✅ Reserva cancelada');
+          this.reservationService.cancelReservation();
         },
         error: (error) => {
           console.error('❌ Error cancelando reserva:', error);
