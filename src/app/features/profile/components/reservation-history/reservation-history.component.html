@@ -6,7 +6,7 @@
 
       <!-- Encabezado -->
       <div class="px-6 py-5 border-b border-text-light-hover">
-        <h2 class="text-2xl font-bold text-text-primary">Historial</h2>
+        <h2 class="text-2xl font-bold text-text-primary">Historial Completo</h2>
       </div>
 
       <!-- Tabla de reservas -->
@@ -26,6 +26,9 @@
             <th class="px-6 py-4 text-left text-sm font-semibold text-text-secondary">
               Fin
             </th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-text-secondary">
+              Estado
+            </th>
           </tr>
           </thead>
           <tbody class="divide-y divide-text-light-hover">
@@ -33,7 +36,7 @@
             *ngFor="let reservation of paginatedReservations"
             class="hover:bg-background-secondary transition-colors duration-150">
             <td class="px-6 py-4 text-sm text-text-primary">
-              {{ reservation.space }}
+              {{ getSpaceCode(reservation.space) }}
             </td>
             <td class="px-6 py-4 text-sm text-text-secondary">
               {{ reservation.date }}
@@ -43,6 +46,11 @@
             </td>
             <td class="px-6 py-4 text-sm text-text-secondary">
               {{ reservation.endTime }}
+            </td>
+            <td class="px-6 py-4 text-sm">
+                <span [ngClass]="getStatusClass(reservation.status)">
+                  {{ getStatusText(reservation.status) }}
+                </span>
             </td>
           </tr>
           </tbody>
